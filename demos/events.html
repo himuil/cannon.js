@@ -54,7 +54,7 @@
           sphereBody.addEventListener("collide",function(e){
               console.log("The sphere just collided with the ground!");
               console.log("Collided with body:",e.body);
-              console.log("Contact between bodies:",e);
+              console.log("Contacts",e);
           });
 
           sphereBody.addEventListener(CANNON.Body.ON_COLLISION_ENTER,function(e){

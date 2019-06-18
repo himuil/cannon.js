@@ -553,7 +553,7 @@ var
      * @event preStep
      */
     World_step_preStepEvent = {type:"preStep"},
-    World_step_collideEvent = {type:Body.COLLIDE_EVENT_NAME, body:null, contact:null },
+    World_step_collideEvent = {type:Body.COLLIDE_EVENT_NAME, event:'', body:null, contacts:null },
     World_step_oldContacts = [], // Pools for unused objects
     World_step_frictionEquationPool = [],
     World_step_p1 = [], // Reusable arrays for collision pairs
@@ -819,16 +819,15 @@ World.prototype.internalStep = function(dt){
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.collisionMatrix.get(bi, bj)){
             // collision stay
-            World_step_collideEvent.type = Body.ON_COLLISION_STAY;
+            World_step_collideEvent.event = Body.ON_COLLISION_STAY;
 
         } else {
             this.collisionMatrix.set(bi, bj, true);
             // collision enter
-            World_step_collideEvent.type = Body.ON_COLLISION_ENTER;
+            World_step_collideEvent.event = Body.ON_COLLISION_ENTER;
         }
         World_step_collideEvent.body = bj;
-        World_step_collideEvent.contact = data[0];
-        World_step_collideEvent.contacts = data;
+        World_step_collideEvent.contacts = data; // Need ?
         bi.dispatchEvent(World_step_collideEvent);
 
         World_step_collideEvent.body = bi;
@@ -861,9 +860,9 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.type = Body.ON_COLLISION_EXIT;
+                    World_step_collideEvent.event = Body.ON_COLLISION_EXIT;
                     World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contact = data;
+                    World_step_collideEvent.contacts = data;
                     bi.dispatchEvent(World_step_collideEvent);
 
                     World_step_collideEvent.body = bi;
