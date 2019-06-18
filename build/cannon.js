@@ -1,4 +1,4 @@
-// Tue, 18 Jun 2019 10:54:25 GMT
+// Tue, 18 Jun 2019 11:33:24 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -26,10 +26,10 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&false)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CANNON=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports={
   "name": "cannon",
-  "version": "0.6.2",
+  "version": "1.0.0",
   "description": "A lightweight 3D physics engine written in JavaScript.",
-  "homepage": "https://github.com/schteppe/cannon.js",
-  "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se)",
+  "homepage": "https://github.com/JayceLai/cannon.js",
+  "author": "JayceLai",
   "keywords": [
     "cannon.js",
     "cannon",
@@ -37,16 +37,16 @@ module.exports={
     "engine",
     "3d"
   ],
-  "main": "./src/Cannon.js",
+  "main": "./build/cannon.js",
   "engines": {
     "node": "*"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/schteppe/cannon.js.git"
+    "url": "https://github.com/JayceLai/cannon.js.git"
   },
   "bugs": {
-    "url": "https://github.com/schteppe/cannon.js/issues"
+    "url": "https://github.com/JayceLai/cannon.js/issues"
   },
   "licenses": [
     {
@@ -14100,7 +14100,7 @@ var
      * @event preStep
      */
     World_step_preStepEvent = {type:"preStep"},
-    World_step_collideEvent = {type:Body.COLLIDE_EVENT_NAME, body:null, contact:null },
+    World_step_collideEvent = {type:Body.COLLIDE_EVENT_NAME, event:'', body:null, contacts:null },
     World_step_oldContacts = [], // Pools for unused objects
     World_step_frictionEquationPool = [],
     World_step_p1 = [], // Reusable arrays for collision pairs
@@ -14366,16 +14366,15 @@ World.prototype.internalStep = function(dt){
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.collisionMatrix.get(bi, bj)){
             // collision stay
-            World_step_collideEvent.type = Body.ON_COLLISION_STAY;
+            World_step_collideEvent.event = Body.ON_COLLISION_STAY;
 
         } else {
             this.collisionMatrix.set(bi, bj, true);
             // collision enter
-            World_step_collideEvent.type = Body.ON_COLLISION_ENTER;
+            World_step_collideEvent.event = Body.ON_COLLISION_ENTER;
         }
         World_step_collideEvent.body = bj;
-        World_step_collideEvent.contact = data[0];
-        World_step_collideEvent.contacts = data;
+        World_step_collideEvent.contacts = data; // Need ?
         bi.dispatchEvent(World_step_collideEvent);
 
         World_step_collideEvent.body = bi;
@@ -14408,9 +14407,9 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.type = Body.ON_COLLISION_EXIT;
+                    World_step_collideEvent.event = Body.ON_COLLISION_EXIT;
                     World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contact = data;
+                    World_step_collideEvent.contacts = data;
                     bi.dispatchEvent(World_step_collideEvent);
 
                     World_step_collideEvent.body = bi;
