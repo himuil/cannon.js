@@ -31,7 +31,7 @@
 
           world.defaultContactMaterial.contactEquationStiffness = 5e7;
           world.defaultContactMaterial.contactEquationRelaxation = 4;
-
+          world.allowSleep = true;
           world.gravity.set(0,0,-20);
 
           // ground plane
@@ -54,9 +54,42 @@
           sphereBody.addEventListener("collide",function(e){
               console.log("The sphere just collided with the ground!");
               console.log("Collided with body:",e.body);
-              console.log("Contact between bodies:",e.contact);
+              console.log("Contact between bodies:",e);
           });
 
+          sphereBody.addEventListener(CANNON.Body.ON_COLLISION_ENTER,function(e){
+              console.log("enter________________________________");
+              console.log("Collided with body:",e.body);
+              console.log("Contact between bodies:",e);
+          });
+          
+          var _temp_i = 0;
+          sphereBody.addEventListener(CANNON.Body.ON_COLLISION_STAY,function(e){
+              console.log("_______________stay__________________", ++_temp_i);
+              console.log("Collided with body:",e.body);
+              console.log("Contact between bodies:",e);
+          });
+
+          sphereBody.addEventListener(CANNON.Body.ON_COLLISION_EXIT,function(e){
+              console.log("_________________________________exit");
+              console.log("Collided with body:",e.body);
+              console.log("Contact between bodies:",e);
+      
+              setTimeout(() => {                
+                sphereBody.position.set(0,0,size*6);
+                // TODO : Should body auto wake up ?
+                sphereBody.wakeUp();
+                // sphereBody.applyLocalForce(new CANNON.Vec3(0, 0, 30000), CANNON.Vec3.UNIT_Z);
+                // sphereBody.wakeUp();
+              }, 5000);
+          });
+      
+          setTimeout(() => {                
+                // sphereBody.position.set(0,0,size*6);
+                // sphereBody.wakeUp();
+                sphereBody.applyLocalForce(new CANNON.Vec3(0, 0, 30000), CANNON.Vec3.UNIT_Z);
+                sphereBody.wakeUp();
+          }, 2000);
         });
 
       demo.start();

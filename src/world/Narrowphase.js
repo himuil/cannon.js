@@ -662,7 +662,9 @@ Narrowphase.prototype.sphereTrimesh = function (
 
 var point_on_plane_to_sphere = new Vec3();
 var plane_to_sphere_ortho = new Vec3();
-
+var p_s_ni = new Vec3(); 
+var p_s_ri = new Vec3();
+var p_s_rj = new Vec3(); 
 /**
  * @method spherePlane
  * @param  {Shape}      si
@@ -676,30 +678,32 @@ var plane_to_sphere_ortho = new Vec3();
  */
 Narrowphase.prototype[Shape.types.SPHERE | Shape.types.PLANE] =
 Narrowphase.prototype.spherePlane = function(si,sj,xi,xj,qi,qj,bi,bj,rsi,rsj,justTest){
-    // We will have one contact in this case
-    var r = this.createContactEquation(bi,bj,si,sj,rsi,rsj);
-
     // Contact normal
-    r.ni.set(0,0,1);
-    qj.vmult(r.ni, r.ni);
-    r.ni.negate(r.ni); // body i is the sphere, flip normal
-    r.ni.normalize(); // Needed?
+    p_s_ni.set(0,0,1);
+    qj.vmult(p_s_ni, p_s_ni);
+    p_s_ni.negate(p_s_ni); // body i is the sphere, flip normal
+    p_s_ni.normalize(); // Needed?
 
     // Vector from sphere center to contact point
-    r.ni.mult(si.radius, r.ri);
+    p_s_ni.mult(si.radius, p_s_ri);
 
     // Project down sphere on plane
     xi.vsub(xj, point_on_plane_to_sphere);
-    r.ni.mult(r.ni.dot(point_on_plane_to_sphere), plane_to_sphere_ortho);
-    point_on_plane_to_sphere.vsub(plane_to_sphere_ortho,r.rj); // The sphere position projected to plane
+    p_s_ni.mult(p_s_ni.dot(point_on_plane_to_sphere), plane_to_sphere_ortho);
+    point_on_plane_to_sphere.vsub(plane_to_sphere_ortho, p_s_rj); // The sphere position projected to plane
 
-    if(-point_on_plane_to_sphere.dot(r.ni) <= si.radius){
+    if(-point_on_plane_to_sphere.dot(p_s_ni) <= si.radius){
 
         if(justTest){
             return true;
         }
 
+        // We will have one contact in this case
+        var r = this.createContactEquation(bi,bj,si,sj,rsi,rsj);
         // Make it relative to the body
+        r.ni.copy(p_s_ni);
+        r.ri.copy(p_s_ri);
+        r.rj.copy(p_s_rj);
         var ri = r.ri;
         var rj = r.rj;
         ri.vadd(xi, ri);

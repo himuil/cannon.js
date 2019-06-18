@@ -60,6 +60,9 @@ function World(options){
     this.contacts = [];
     this.frictionEquations = [];
 
+    this.contactsDic = new TupleDictionary();
+    this.oldContactsDic = new TupleDictionary();
+
     /**
      * How often to normalize quaternions. Set to 0 for every step, 1 for every second etc.. A larger value increases performance. If bodies tend to explode, set to a smaller value (zero to be sure nothing can go wrong).
      * @property quatNormalizeSkip
@@ -142,13 +145,6 @@ function World(options){
 	 * @type {ArrayCollisionMatrix}
 	 */
 	this.collisionMatrix = new ArrayCollisionMatrix();
-
-    /**
-     * CollisionMatrix from the previous step.
-     * @property {ArrayCollisionMatrix} collisionMatrixPrevious
-	 * @type {ArrayCollisionMatrix}
-	 */
-	this.collisionMatrixPrevious = new ArrayCollisionMatrix();
 
     this.bodyOverlapKeeper = new OverlapKeeper();
     this.shapeOverlapKeeper = new OverlapKeeper();
@@ -268,11 +264,6 @@ World.prototype.numObjects = function(){
  * @method collisionMatrixTick
  */
 World.prototype.collisionMatrixTick = function(){
-	var temp = this.collisionMatrixPrevious;
-	this.collisionMatrixPrevious = this.collisionMatrix;
-	this.collisionMatrix = temp;
-	this.collisionMatrix.reset();
-
     this.bodyOverlapKeeper.tick();
     this.shapeOverlapKeeper.tick();
 };
@@ -685,15 +676,15 @@ World.prototype.internalStep = function(dt){
     }
 
     // Add all friction eqs
-    for (var i = 0; i < this.frictionEquations.length; i++) {
+    for (i = 0; i < this.frictionEquations.length; i++) {
         solver.addEquation(this.frictionEquations[i]);
     }
 
     var ncontacts = contacts.length;
-    for(var k=0; k!==ncontacts; k++){
+    for(i = 0; i!==ncontacts; i++){
 
         // Current contact
-        var c = contacts[k];
+        var c = contacts[i];
 
         // Get current collision indeces
         var bi = c.bi,
@@ -772,6 +763,31 @@ World.prototype.internalStep = function(dt){
 		// 	solver.addEquation(c2);
 		// }
 
+        this.shapeOverlapKeeper.set(si.id, sj.id);
+        
+        var item = this.contactsDic.get(bi.id, bj.id);
+        if ( item == null) {
+            item = this.contactsDic.set(bi.id, bj.id, []);
+        }
+        item.push(c);
+    }
+
+    var key;
+    var data;
+    // is collision enter or stay
+    i = this.contactsDic.getLength(); 
+    while(i--) {
+        key = this.contactsDic.getKeyByIndex(i);
+        data = this.contactsDic.getDataByKey(key);
+        
+        if(data == null)
+            continue;
+
+        var bi = data[0].bi;
+        var bj = data[0].bj;
+        // var si = data[0].si;
+        // var sj = data[0].sj;
+
         if( bi.allowSleep &&
             bi.type === Body.DYNAMIC &&
             bi.sleepState  === Body.SLEEPING &&
@@ -781,7 +797,8 @@ World.prototype.internalStep = function(dt){
             var speedSquaredB = bj.velocity.norm2() + bj.angularVelocity.norm2();
             var speedLimitSquaredB = Math.pow(bj.sleepSpeedLimit,2);
             if(speedSquaredB >= speedLimitSquaredB*2){
-                bi._wakeUpAfterNarrowphase = true;
+                // bi._wakeUpAfterNarrowphase = true;
+                bi.wakeUp();
             }
         }
 
@@ -794,27 +811,72 @@ World.prototype.internalStep = function(dt){
             var speedSquaredA = bi.velocity.norm2() + bi.angularVelocity.norm2();
             var speedLimitSquaredA = Math.pow(bi.sleepSpeedLimit,2);
             if(speedSquaredA >= speedLimitSquaredA*2){
-                bj._wakeUpAfterNarrowphase = true;
+                // bj._wakeUpAfterNarrowphase = true;
+                bj.wakeUp();
             }
         }
 
-        // Now we know that i and j are in contact. Set collision matrix state
-		this.collisionMatrix.set(bi, bj, true);
+        // Now we know that i and j are in contact. Set collision matrix state		
+        if (this.collisionMatrix.get(bi, bj)){
+            // collision stay
+            World_step_collideEvent.type = Body.ON_COLLISION_STAY;
 
-        if (!this.collisionMatrixPrevious.get(bi, bj)) {
-            // First contact!
-            // We reuse the collideEvent object, otherwise we will end up creating new objects for each new contact, even if there's no event listener attached.
-            World_step_collideEvent.body = bj;
-            World_step_collideEvent.contact = c;
-            bi.dispatchEvent(World_step_collideEvent);
-
-            World_step_collideEvent.body = bi;
-            bj.dispatchEvent(World_step_collideEvent);
+        } else {
+            this.collisionMatrix.set(bi, bj, true);
+            // collision enter
+            World_step_collideEvent.type = Body.ON_COLLISION_ENTER;
         }
+        World_step_collideEvent.body = bj;
+        World_step_collideEvent.contact = data[0];
+        World_step_collideEvent.contacts = data;
+        bi.dispatchEvent(World_step_collideEvent);
+
+        World_step_collideEvent.body = bi;
+        bj.dispatchEvent(World_step_collideEvent);
 
         this.bodyOverlapKeeper.set(bi.id, bj.id);
-        this.shapeOverlapKeeper.set(si.id, sj.id);
     }
+
+    for(i = oldcontacts.length; i--;){        
+        // Current contact
+        var c = oldcontacts[i];
+
+        // Get current collision indeces
+        var bi = c.bi;
+        var bj = c.bj;
+        if(this.oldContactsDic.get(bi.id, bj.id) == null){
+            this.oldContactsDic.set(bi.id, bj.id, c);
+        }
+    }
+
+    // is collision exit
+    i = this.oldContactsDic.getLength(); 
+    while(i--) {
+        key = this.oldContactsDic.getKeyByIndex(i);
+        if(this.contactsDic.getDataByKey(key) == null) {
+            data = this.oldContactsDic.getDataByKey(key);
+            var bi = data.bi;
+            var bj = data.bj;
+            if (this.collisionMatrix.get(bi, bj)) {
+                if (!bi.isSleeping() || !bj.isSleeping()) {
+                    this.collisionMatrix.set(bi, bj, false);    
+                    // collision exit
+                    World_step_collideEvent.type = Body.ON_COLLISION_EXIT;
+                    World_step_collideEvent.body = bj;
+                    World_step_collideEvent.contact = data;
+                    bi.dispatchEvent(World_step_collideEvent);
+
+                    World_step_collideEvent.body = bi;
+                    bj.dispatchEvent(World_step_collideEvent);
+                } else {
+                    // not exit, due to sleeping
+                }
+            }
+        }
+    }
+
+    this.contactsDic.reset();
+    this.oldContactsDic.reset();
 
     this.emitContactEvents();
 
@@ -823,14 +885,14 @@ World.prototype.internalStep = function(dt){
         profilingStart = performance.now();
     }
 
-    // Wake up bodies
-    for(i=0; i!==N; i++){
-        var bi = bodies[i];
-        if(bi._wakeUpAfterNarrowphase){
-            bi.wakeUp();
-            bi._wakeUpAfterNarrowphase = false;
-        }
-    }
+    // // Wake up bodies
+    // for(i=0; i!==N; i++){
+    //     var bi = bodies[i];
+    //     if(bi._wakeUpAfterNarrowphase){
+    //         bi.wakeUp();
+    //         bi._wakeUpAfterNarrowphase = false;
+    //     }
+    // }
 
     // Add user-added constraints
     var Nconstraints = constraints.length;
