@@ -10,7 +10,12 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}",
-            "file": "${workspaceFolder}/index.html"
+            "file": "${workspaceFolder}/index.html",
+			"runtimeArgs": [
+				"--allow-file-access-from-files",
+				"--allow-file-access-frome-files",
+				" --disable-web-security"
+			],
         }
     ]
 }

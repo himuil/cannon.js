@@ -47,14 +47,23 @@
           sphereBody.addShape(sphere);
           var pos = new CANNON.Vec3(0,0,size);
           sphereBody.position.set(0,0,size*6);
+          
+          var sphere2 = new CANNON.Sphere(size);
+          sphere2.collisionResponse = false;
+          sphereBody.addShape(sphere2, new CANNON.Vec3(0,0,-2));
+
           world.addBody(sphereBody);
           demo.addVisual(sphereBody);
 
           // When a body collides with another body, they both dispatch the "collide" event.
-          sphereBody.addEventListener("collide",function(e){
-              console.log("The sphere just collided with the ground!");
-              console.log("Collided with body:",e.body);
-              console.log("Contacts",e);
+          // sphereBody.addEventListener("collide",function(e){
+          //     console.log("The sphere just collided with the ground!");
+          //     console.log("Collided with body:",e.body);
+          //     console.log("Contacts",e);
+          // });
+
+          world.addEventListener("triggered",function(e){
+              console.log(`${e.event}`, e);
           });
 
           sphereBody.addEventListener(CANNON.Body.ON_COLLISION_ENTER,function(e){

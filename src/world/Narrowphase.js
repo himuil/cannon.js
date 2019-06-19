@@ -69,9 +69,9 @@ Narrowphase.prototype.createContactEquation = function(bi, bj, si, sj, overrideS
     } else {
         c = new ContactEquation(bi, bj);
     }
-
-    c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
-
+    // need ?, trigger is already filter
+    // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
+    
     var cm = this.currentContactMaterial;
 
     c.restitution = cm.restitution;
@@ -236,7 +236,7 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
             bodyContactMaterial = world.getContactMaterial(bi.material,bj.material) || null;
         }
 
-        var justTest = (
+        var justTest = ( bi.collisionResponse == false || bj.collisionResponse == false ||
             (
                 (bi.type & Body.KINEMATIC) && (bj.type & Body.STATIC)
             ) || (
@@ -267,6 +267,9 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                 if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
                     continue;
                 }
+                
+                // is trigger ? ,trigger test just only
+                justTest |= (si.collisionResponse == false) || (sj.collisionResponse == false);
 
                 // Get collision material
                 var shapeContactMaterial = null;
@@ -289,6 +292,7 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                     if(retval && justTest){
                         // Register overlap
                         world.shapeOverlapKeeper.set(si.id, sj.id);
+                        world.shapeOverlapKeeperExit.set(si.id, sj.id);
                         world.bodyOverlapKeeper.set(bi.id, bj.id);
                     }
                 }

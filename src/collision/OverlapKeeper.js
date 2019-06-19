@@ -51,6 +51,14 @@ OverlapKeeper.prototype.tick = function() {
     this.current.length = 0;
 };
 
+/**
+ * @method reset
+ */
+OverlapKeeper.prototype.reset = function() {
+    this.previous.length = 0;
+    this.current.length = 0;
+};
+
 function unpackAndPush(array, key){
     array.push((key & 0xFFFF0000) >> 16, key & 0x0000FFFF);
 }
@@ -92,4 +100,11 @@ OverlapKeeper.prototype.getDiff = function(additions, removals) {
             unpackAndPush(removals, keyB);
         }
     }
+};
+
+OverlapKeeper.prototype.copy = function(overlapKeeper) {
+    this.current.length = 0;
+    this.previous.length = 0;
+    this.current = overlapKeeper.current.slice();
+    this.previous = overlapKeeper.previous.slice();
 };

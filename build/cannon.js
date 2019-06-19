@@ -1,4 +1,4 @@
-// Tue, 18 Jun 2019 12:01:29 GMT
+// Wed, 19 Jun 2019 11:35:54 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -1160,6 +1160,14 @@ OverlapKeeper.prototype.tick = function() {
     this.current.length = 0;
 };
 
+/**
+ * @method reset
+ */
+OverlapKeeper.prototype.reset = function() {
+    this.previous.length = 0;
+    this.current.length = 0;
+};
+
 function unpackAndPush(array, key){
     array.push((key & 0xFFFF0000) >> 16, key & 0x0000FFFF);
 }
@@ -1201,6 +1209,13 @@ OverlapKeeper.prototype.getDiff = function(additions, removals) {
             unpackAndPush(removals, keyB);
         }
     }
+};
+
+OverlapKeeper.prototype.copy = function(overlapKeeper) {
+    this.current.length = 0;
+    this.previous.length = 0;
+    this.current = overlapKeeper.current.slice();
+    this.previous = overlapKeeper.previous.slice();
 };
 },{}],10:[function(_dereq_,module,exports){
 module.exports = Ray;
@@ -5412,6 +5427,7 @@ var Quaternion = _dereq_('../math/Quaternion');
 var Material = _dereq_('../material/Material');
 var AABB = _dereq_('../collision/AABB');
 var Box = _dereq_('../shapes/Box');
+var World = _dereq_('../world/World');
 
 /**
  * Base class for all body types.
@@ -5731,6 +5747,13 @@ function Body(options){
     this.fixedRotation = typeof(options.fixedRotation) !== "undefined" ? options.fixedRotation : false;
 
     /**
+     * use gravity ?
+     * @property {Boolean} useGravity
+     * @default true
+     */
+    this.useGravity = true;
+
+    /**
      * @property {Number} angularDamping
      */
     this.angularDamping = typeof(options.angularDamping) !== 'undefined' ? options.angularDamping : 0.01;
@@ -6012,6 +6035,7 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
         orientation.copy(_orientation);
     }
 
+    World.idToShapeMap[shape.id] = shape;
     this.shapes.push(shape);
     this.shapeOffsets.push(offset);
     this.shapeOrientations.push(orientation);
@@ -6021,9 +6045,29 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
     this.aabbNeedsUpdate = true;
 
     shape.body = this;
-
     return this;
 };
+
+/**
+ * Remove a shape from the body
+ */
+Body.prototype.removeShape = function(shape){   
+    var idx = this.shapes.indexOf(shape);
+    if(idx === -1){
+        return;
+    }
+    shape.body = null;
+    delete World.idToShapeMap[shape.id];
+ 
+    this.shapes.splice(idx, 1);
+    this.shapeOffsets.splice(idx, 1);
+    this.shapeOrientations.splice(idx, 1);
+        
+    this.updateMassProperties();
+    this.updateBoundingRadius();
+    
+    this.aabbNeedsUpdate = true;
+}
 
 /**
  * Update the bounding radius of the body. Should be done if any of the shapes are changed.
@@ -6122,7 +6166,7 @@ Body.prototype.updateInertiaWorld = function(force){
  * @param  {Vec3} force The amount of force to add.
  * @param  {Vec3} relativePoint A point relative to the center of mass to apply the force on.
  */
-var Body_applyForce_r = new Vec3();
+// var Body_applyForce_r = new Vec3();
 var Body_applyForce_rotForce = new Vec3();
 Body.prototype.applyForce = function(force,relativePoint){
     if(this.type !== Body.DYNAMIC){ // Needed?
@@ -6169,7 +6213,7 @@ Body.prototype.applyLocalForce = function(localForce, localPoint){
  * @param  {Vec3} impulse The amount of impulse to add.
  * @param  {Vec3} relativePoint A point relative to the center of mass to apply the force on.
  */
-var Body_applyImpulse_r = new Vec3();
+// var Body_applyImpulse_r = new Vec3();
 var Body_applyImpulse_velo = new Vec3();
 var Body_applyImpulse_rotVelo = new Vec3();
 Body.prototype.applyImpulse = function(impulse, relativePoint){
@@ -6271,10 +6315,10 @@ Body.prototype.getVelocityAtWorldPoint = function(worldPoint, result){
     return result;
 };
 
-var torque = new Vec3();
-var invI_tau_dt = new Vec3();
-var w = new Quaternion();
-var wq = new Quaternion();
+// var torque = new Vec3();
+// var invI_tau_dt = new Vec3();
+// var w = new Quaternion();
+// var wq = new Quaternion();
 
 /**
  * Move the body forward in time.
@@ -6358,7 +6402,7 @@ Body.prototype.isAwake = function(){
     return this.sleepState === Body.AWAKE;
 }
 
-},{"../collision/AABB":3,"../material/Material":26,"../math/Mat3":28,"../math/Quaternion":29,"../math/Vec3":31,"../shapes/Box":38,"../shapes/Shape":44,"../utils/EventTarget":50}],33:[function(_dereq_,module,exports){
+},{"../collision/AABB":3,"../material/Material":26,"../math/Mat3":28,"../math/Quaternion":29,"../math/Vec3":31,"../shapes/Box":38,"../shapes/Shape":44,"../utils/EventTarget":50,"../world/World":57}],33:[function(_dereq_,module,exports){
 var Body = _dereq_('./Body');
 var Vec3 = _dereq_('../math/Vec3');
 var Quaternion = _dereq_('../math/Quaternion');
@@ -11746,9 +11790,9 @@ Narrowphase.prototype.createContactEquation = function(bi, bj, si, sj, overrideS
     } else {
         c = new ContactEquation(bi, bj);
     }
-
-    c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
-
+    // need ?, trigger is already filter
+    // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
+    
     var cm = this.currentContactMaterial;
 
     c.restitution = cm.restitution;
@@ -11913,7 +11957,7 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
             bodyContactMaterial = world.getContactMaterial(bi.material,bj.material) || null;
         }
 
-        var justTest = (
+        var justTest = ( bi.collisionResponse == false || bj.collisionResponse == false ||
             (
                 (bi.type & Body.KINEMATIC) && (bj.type & Body.STATIC)
             ) || (
@@ -11944,6 +11988,9 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                 if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
                     continue;
                 }
+                
+                // is trigger ? ,trigger test just only
+                justTest |= (si.collisionResponse == false) || (sj.collisionResponse == false);
 
                 // Get collision material
                 var shapeContactMaterial = null;
@@ -11966,6 +12013,7 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                     if(retval && justTest){
                         // Register overlap
                         world.shapeOverlapKeeper.set(si.id, sj.id);
+                        world.shapeOverlapKeeperExit.set(si.id, sj.id);
                         world.bodyOverlapKeeper.set(bi.id, bj.id);
                     }
                 }
@@ -13558,6 +13606,7 @@ var FrictionEquation = _dereq_('../equations/FrictionEquation');
 var Narrowphase = _dereq_('./Narrowphase');
 var EventTarget = _dereq_('../utils/EventTarget');
 var ArrayCollisionMatrix = _dereq_('../collision/ArrayCollisionMatrix');
+var ObjectCollisionMatrix = _dereq_('../collision/ObjectCollisionMatrix');
 var OverlapKeeper = _dereq_('../collision/OverlapKeeper');
 var Material = _dereq_('../material/Material');
 var ContactMaterial = _dereq_('../material/ContactMaterial');
@@ -13691,10 +13740,15 @@ function World(options){
      * @property {ArrayCollisionMatrix} collisionMatrix
 	 * @type {ArrayCollisionMatrix}
 	 */
-	this.collisionMatrix = new ArrayCollisionMatrix();
+    this.collisionMatrix = new ObjectCollisionMatrix();
+    
+    this.triggerMatrix = new ObjectCollisionMatrix();
 
     this.bodyOverlapKeeper = new OverlapKeeper();
+
     this.shapeOverlapKeeper = new OverlapKeeper();
+
+    this.shapeOverlapKeeperExit = new OverlapKeeper();
 
     /**
      * All added materials
@@ -13774,15 +13828,18 @@ function World(options){
         body : null
     };
 
-    this.idToBodyMap = {};
-
     this.broadphase.setWorld(this);
 }
+
+World.idToBodyMap = {};
+
+World.idToShapeMap = {};
+
 World.prototype = new EventTarget();
 
 // Temp stuff
-var tmpAABB1 = new AABB();
-var tmpArray1 = [];
+// var tmpAABB1 = new AABB();
+// var tmpArray1 = [];
 var tmpRay = new Ray();
 
 /**
@@ -13811,8 +13868,9 @@ World.prototype.numObjects = function(){
  * @method collisionMatrixTick
  */
 World.prototype.collisionMatrixTick = function(){
-    this.bodyOverlapKeeper.tick();
-    this.shapeOverlapKeeper.tick();
+    // this.bodyOverlapKeeper.tick();
+    // this.shapeOverlapKeeper.tick();
+    // this.shapeOverlapKeeperExit.tick();
 };
 
 /**
@@ -13839,7 +13897,7 @@ World.prototype.add = World.prototype.addBody = function(body){
     }
 	this.collisionMatrix.setNumObjects(this.bodies.length);
     this.addBodyEvent.body = body;
-    this.idToBodyMap[body.id] = body;
+    World.idToBodyMap[body.id] = body;
     this.dispatchEvent(this.addBodyEvent);
 };
 
@@ -13970,7 +14028,7 @@ World.prototype.remove = function(body){
 
         this.collisionMatrix.setNumObjects(n);
         this.removeBodyEvent.body = body;
-        delete this.idToBodyMap[body.id];
+        delete World.idToBodyMap[body.id];
         this.dispatchEvent(this.removeBodyEvent);
     }
 };
@@ -13983,21 +14041,11 @@ World.prototype.remove = function(body){
 World.prototype.removeBody = World.prototype.remove;
 
 World.prototype.getBodyById = function(id){
-    return this.idToBodyMap[id];
+    return World.idToBodyMap[id];
 };
 
-// TODO Make a faster map
 World.prototype.getShapeById = function(id){
-    var bodies = this.bodies;
-    for(var i=0, bl = bodies.length; i<bl; i++){
-        var shapes = bodies[i].shapes;
-        for (var j = 0, sl = shapes.length; j < sl; j++) {
-            var shape = shapes[j];
-            if(shape.id === id){
-                return shape;
-            }
-        }
-    }
+    return World.idToShapeMap[id];
 };
 
 /**
@@ -14104,20 +14152,21 @@ var
     World_step_oldContacts = [], // Pools for unused objects
     World_step_frictionEquationPool = [],
     World_step_p1 = [], // Reusable arrays for collision pairs
-    World_step_p2 = [],
-    World_step_gvec = new Vec3(), // Temporary vectors and quats
-    World_step_vi = new Vec3(),
-    World_step_vj = new Vec3(),
-    World_step_wi = new Vec3(),
-    World_step_wj = new Vec3(),
-    World_step_t1 = new Vec3(),
-    World_step_t2 = new Vec3(),
-    World_step_rixn = new Vec3(),
-    World_step_rjxn = new Vec3(),
-    World_step_step_q = new Quaternion(),
-    World_step_step_w = new Quaternion(),
-    World_step_step_wq = new Quaternion(),
-    invI_tau_dt = new Vec3();
+    World_step_p2 = [];
+    // World_step_gvec = new Vec3(), // Temporary vectors and quats
+    // World_step_vi = new Vec3(),
+    // World_step_vj = new Vec3(),
+    // World_step_wi = new Vec3(),
+    // World_step_wj = new Vec3(),
+    // World_step_t1 = new Vec3(),
+    // World_step_t2 = new Vec3(),
+    // World_step_rixn = new Vec3(),
+    // World_step_rjxn = new Vec3(),
+    // World_step_step_q = new Quaternion(),
+    // World_step_step_w = new Quaternion(),
+    // World_step_step_wq = new Quaternion(),
+    // invI_tau_dt = new Vec3()
+
 World.prototype.internalStep = function(dt){
     this.dt = dt;
 
@@ -14149,7 +14198,7 @@ World.prototype.internalStep = function(dt){
     // Add gravity to all objects
     for(i=0; i!==N; i++){
         var bi = bodies[i];
-        if(bi.type === DYNAMIC){ // Only for dynamic bodies
+        if(bi.useGravity && bi.type === DYNAMIC){ // Only for dynamic bodies
             var f = bi.force, m = bi.mass;
             f.x += m*gx;
             f.y += m*gy;
@@ -14184,8 +14233,9 @@ World.prototype.internalStep = function(dt){
         }
     }
 
-    this.collisionMatrixTick();
-
+    // this.collisionMatrixTick();
+    this.shapeOverlapKeeperExit.tick();
+    
     // Generate contacts
     if(doProfiling){ profilingStart = performance.now(); }
     var oldcontacts = World_step_oldContacts;
@@ -14310,7 +14360,6 @@ World.prototype.internalStep = function(dt){
 		// 	solver.addEquation(c2);
 		// }
 
-        this.shapeOverlapKeeper.set(si.id, sj.id);
         
         var item = this.contactsDic.get(bi.id, bj.id);
         if ( item == null) {
@@ -14319,6 +14368,10 @@ World.prototype.internalStep = function(dt){
         item.push(c);
     }
 
+    // trigger 
+    this.emitTriggeredEvents();
+
+    // collision
     var key;
     var data;
     // is collision enter or stay
@@ -14420,25 +14473,18 @@ World.prototype.internalStep = function(dt){
             }
         }
     }
-
+    
+    
     this.contactsDic.reset();
     this.oldContactsDic.reset();
 
-    this.emitContactEvents();
+    this.shapeOverlapKeeper.reset();
 
     if(doProfiling){
         profile.makeContactConstraints = performance.now() - profilingStart;
         profilingStart = performance.now();
     }
 
-    // // Wake up bodies
-    // for(i=0; i!==N; i++){
-    //     var bi = bodies[i];
-    //     if(bi._wakeUpAfterNarrowphase){
-    //         bi.wakeUp();
-    //         bi._wakeUpAfterNarrowphase = false;
-    //     }
-    // }
 
     // Add user-added constraints
     var Nconstraints = constraints.length;
@@ -14531,96 +14577,58 @@ World.prototype.internalStep = function(dt){
     }
 };
 
-World.prototype.emitContactEvents = (function(){
-    var additions = [];
-    var removals = [];
-    var beginContactEvent = {
-        type: 'beginContact',
-        bodyA: null,
-        bodyB: null
-    };
-    var endContactEvent = {
-        type: 'endContact',
-        bodyA: null,
-        bodyB: null
-    };
-    var beginShapeContactEvent = {
-        type: 'beginShapeContact',
-        bodyA: null,
-        bodyB: null,
-        shapeA: null,
-        shapeB: null
-    };
-    var endShapeContactEvent = {
-        type: 'endShapeContact',
-        bodyA: null,
-        bodyB: null,
-        shapeA: null,
-        shapeB: null
-    };
-    return function(){
-        var hasBeginContact = this.hasAnyEventListener('beginContact');
-        var hasEndContact = this.hasAnyEventListener('endContact');
+var additions = [];
+var removals = [];
+var triggeredEvent = {
+    type: 'triggered',
+    event: '',
+    bodyA: null, // need ?
+    bodyB: null, // need ?
+    shapeA: null,
+    shapeB: null
+};
+World.prototype.emitTriggeredEvents =function(){
+    
+    var id1;
+    var id2;
 
-        if(hasBeginContact || hasEndContact){
-            this.bodyOverlapKeeper.getDiff(additions, removals);
+    additions.length = removals.length = 0;    
+    this.shapeOverlapKeeperExit.getDiff(additions, removals);
+    
+    for (var i = 0, l = removals.length; i < l; i += 2) {
+        triggeredEvent.event = 'onTriggerExit';
+        var shapeA = this.getShapeById(removals[i]);
+        var shapeB = this.getShapeById(removals[i+1]);
+        // if(!shapeA.body.isSleeping || !shapeB.body.isSleeping){
+        this.triggerMatrix.set(shapeA, shapeB, false);
+        triggeredEvent.shapeA = shapeA;
+        triggeredEvent.shapeB = shapeB;
+        triggeredEvent.bodyA = shapeA.body;
+        triggeredEvent.bodyB = shapeB.body;
+        this.dispatchEvent(triggeredEvent);
+        // }
+    }
+
+    additions.length = removals.length = 0;
+    this.shapeOverlapKeeper.getDiff(additions, removals);
+    for (var i = 0, l = additions.length; i < l; i += 2) {
+        var id1 = additions[i];
+        var id2 = additions[i+1];
+        var shapeA = this.getShapeById(id1);
+        var shapeB = this.getShapeById(id2);
+        if(this.triggerMatrix.get(shapeA, shapeB)){
+            triggeredEvent.event = 'onTriggerStay';
+        } else {
+            this.triggerMatrix.set(shapeA, shapeB, true);
+            triggeredEvent.event = 'onTriggerEnter';
         }
-
-        if(hasBeginContact){
-            for (var i = 0, l = additions.length; i < l; i += 2) {
-                beginContactEvent.bodyA = this.getBodyById(additions[i]);
-                beginContactEvent.bodyB = this.getBodyById(additions[i+1]);
-                this.dispatchEvent(beginContactEvent);
-            }
-            beginContactEvent.bodyA = beginContactEvent.bodyB = null;
-        }
-
-        if(hasEndContact){
-            for (var i = 0, l = removals.length; i < l; i += 2) {
-                endContactEvent.bodyA = this.getBodyById(removals[i]);
-                endContactEvent.bodyB = this.getBodyById(removals[i+1]);
-                this.dispatchEvent(endContactEvent);
-            }
-            endContactEvent.bodyA = endContactEvent.bodyB = null;
-        }
-
-        additions.length = removals.length = 0;
-
-        var hasBeginShapeContact = this.hasAnyEventListener('beginShapeContact');
-        var hasEndShapeContact = this.hasAnyEventListener('endShapeContact');
-
-        if(hasBeginShapeContact || hasEndShapeContact){
-            this.shapeOverlapKeeper.getDiff(additions, removals);
-        }
-
-        if(hasBeginShapeContact){
-            for (var i = 0, l = additions.length; i < l; i += 2) {
-                var shapeA = this.getShapeById(additions[i]);
-                var shapeB = this.getShapeById(additions[i+1]);
-                beginShapeContactEvent.shapeA = shapeA;
-                beginShapeContactEvent.shapeB = shapeB;
-                beginShapeContactEvent.bodyA = shapeA.body;
-                beginShapeContactEvent.bodyB = shapeB.body;
-                this.dispatchEvent(beginShapeContactEvent);
-            }
-            beginShapeContactEvent.bodyA = beginShapeContactEvent.bodyB = beginShapeContactEvent.shapeA = beginShapeContactEvent.shapeB = null;
-        }
-
-        if(hasEndShapeContact){
-            for (var i = 0, l = removals.length; i < l; i += 2) {
-                var shapeA = this.getShapeById(removals[i]);
-                var shapeB = this.getShapeById(removals[i+1]);
-                endShapeContactEvent.shapeA = shapeA;
-                endShapeContactEvent.shapeB = shapeB;
-                endShapeContactEvent.bodyA = shapeA.body;
-                endShapeContactEvent.bodyB = shapeB.body;
-                this.dispatchEvent(endShapeContactEvent);
-            }
-            endShapeContactEvent.bodyA = endShapeContactEvent.bodyB = endShapeContactEvent.shapeA = endShapeContactEvent.shapeB = null;
-        }
-
-    };
-})();
+        triggeredEvent.shapeA = shapeA;
+        triggeredEvent.shapeB = shapeB;
+        triggeredEvent.bodyA = shapeA.body;
+        triggeredEvent.bodyB = shapeB.body;
+        this.dispatchEvent(triggeredEvent);
+    }
+};
 
 /**
  * Sets all body forces in the world to zero.
@@ -14639,6 +14647,6 @@ World.prototype.clearForces = function(){
     }
 };
 
-},{"../collision/AABB":3,"../collision/ArrayCollisionMatrix":4,"../collision/NaiveBroadphase":7,"../collision/OverlapKeeper":9,"../collision/Ray":10,"../collision/RaycastResult":11,"../equations/ContactEquation":20,"../equations/FrictionEquation":22,"../material/ContactMaterial":25,"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"../objects/Body":32,"../shapes/Shape":44,"../solver/GSSolver":47,"../utils/EventTarget":50,"../utils/TupleDictionary":53,"./Narrowphase":56}]},{},[2])
+},{"../collision/AABB":3,"../collision/ArrayCollisionMatrix":4,"../collision/NaiveBroadphase":7,"../collision/ObjectCollisionMatrix":8,"../collision/OverlapKeeper":9,"../collision/Ray":10,"../collision/RaycastResult":11,"../equations/ContactEquation":20,"../equations/FrictionEquation":22,"../material/ContactMaterial":25,"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"../objects/Body":32,"../shapes/Shape":44,"../solver/GSSolver":47,"../utils/EventTarget":50,"../utils/TupleDictionary":53,"./Narrowphase":56}]},{},[2])
 (2)
 });

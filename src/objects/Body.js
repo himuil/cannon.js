@@ -8,6 +8,7 @@ var Quaternion = require('../math/Quaternion');
 var Material = require('../material/Material');
 var AABB = require('../collision/AABB');
 var Box = require('../shapes/Box');
+var World = require('../world/World');
 
 /**
  * Base class for all body types.
@@ -327,6 +328,13 @@ function Body(options){
     this.fixedRotation = typeof(options.fixedRotation) !== "undefined" ? options.fixedRotation : false;
 
     /**
+     * use gravity ?
+     * @property {Boolean} useGravity
+     * @default true
+     */
+    this.useGravity = true;
+
+    /**
      * @property {Number} angularDamping
      */
     this.angularDamping = typeof(options.angularDamping) !== 'undefined' ? options.angularDamping : 0.01;
@@ -608,6 +616,7 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
         orientation.copy(_orientation);
     }
 
+    World.idToShapeMap[shape.id] = shape;
     this.shapes.push(shape);
     this.shapeOffsets.push(offset);
     this.shapeOrientations.push(orientation);
@@ -617,9 +626,29 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
     this.aabbNeedsUpdate = true;
 
     shape.body = this;
-
     return this;
 };
+
+/**
+ * Remove a shape from the body
+ */
+Body.prototype.removeShape = function(shape){   
+    var idx = this.shapes.indexOf(shape);
+    if(idx === -1){
+        return;
+    }
+    shape.body = null;
+    delete World.idToShapeMap[shape.id];
+ 
+    this.shapes.splice(idx, 1);
+    this.shapeOffsets.splice(idx, 1);
+    this.shapeOrientations.splice(idx, 1);
+        
+    this.updateMassProperties();
+    this.updateBoundingRadius();
+    
+    this.aabbNeedsUpdate = true;
+}
 
 /**
  * Update the bounding radius of the body. Should be done if any of the shapes are changed.
@@ -718,7 +747,7 @@ Body.prototype.updateInertiaWorld = function(force){
  * @param  {Vec3} force The amount of force to add.
  * @param  {Vec3} relativePoint A point relative to the center of mass to apply the force on.
  */
-var Body_applyForce_r = new Vec3();
+// var Body_applyForce_r = new Vec3();
 var Body_applyForce_rotForce = new Vec3();
 Body.prototype.applyForce = function(force,relativePoint){
     if(this.type !== Body.DYNAMIC){ // Needed?
@@ -765,7 +794,7 @@ Body.prototype.applyLocalForce = function(localForce, localPoint){
  * @param  {Vec3} impulse The amount of impulse to add.
  * @param  {Vec3} relativePoint A point relative to the center of mass to apply the force on.
  */
-var Body_applyImpulse_r = new Vec3();
+// var Body_applyImpulse_r = new Vec3();
 var Body_applyImpulse_velo = new Vec3();
 var Body_applyImpulse_rotVelo = new Vec3();
 Body.prototype.applyImpulse = function(impulse, relativePoint){
@@ -867,10 +896,10 @@ Body.prototype.getVelocityAtWorldPoint = function(worldPoint, result){
     return result;
 };
 
-var torque = new Vec3();
-var invI_tau_dt = new Vec3();
-var w = new Quaternion();
-var wq = new Quaternion();
+// var torque = new Vec3();
+// var invI_tau_dt = new Vec3();
+// var w = new Quaternion();
+// var wq = new Quaternion();
 
 /**
  * Move the body forward in time.
