@@ -18,7 +18,7 @@ function TupleDictionary() {
  * @method get
  * @param  {Number} i
  * @param  {Number} j
- * @return {Number}
+ * @return {Object}
  */
 TupleDictionary.prototype.get = function(i, j) {
     if (i > j) {
@@ -34,7 +34,7 @@ TupleDictionary.prototype.get = function(i, j) {
  * @method set
  * @param  {Number} i
  * @param  {Number} j
- * @param {Number} value
+ * @param {Object} value
  */
 TupleDictionary.prototype.set = function(i, j, value) {
     if (i > j) {
@@ -50,6 +50,7 @@ TupleDictionary.prototype.set = function(i, j, value) {
     }
 
     this.data[key] = value;
+    return this.data[key];
 };
 
 /**
@@ -60,6 +61,29 @@ TupleDictionary.prototype.reset = function() {
         keys = data.keys;
     while(keys.length > 0){
         var key = keys.pop();
-        delete data[key];
+        delete data[key];        
     }
+};
+
+/**
+ * @method getLength
+ */
+TupleDictionary.prototype.getLength = function() {
+    return  this.data.keys.length;
+};
+
+/**
+ * @method getKeyByIndex
+ * @param {Number} index
+ */
+TupleDictionary.prototype.getKeyByIndex = function(index) {
+    return  this.data.keys[index];
+};
+
+/**
+ * @method getDataByKey
+ * @param {Number} Key
+ */
+TupleDictionary.prototype.getDataByKey = function(Key) {
+    return  this.data[Key];
 };

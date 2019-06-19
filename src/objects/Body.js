@@ -390,6 +390,12 @@ Body.prototype.constructor = Body;
  */
 Body.COLLIDE_EVENT_NAME = "collide";
 
+Body.ON_COLLISION_ENTER = "onCollisionEnter";
+
+Body.ON_COLLISION_STAY = "onCollisionStay";
+
+Body.ON_COLLISION_EXIT = "onCollisionExit";
+
 /**
  * A dynamic body is fully simulated. Can be moved manually by the user, but normally they move according to forces. A dynamic body can collide with all body types. A dynamic body always has finite, non-zero mass.
  * @static
@@ -926,3 +932,24 @@ Body.prototype.integrate = function(dt, quatNormalize, quatNormalizeFast){
     // Update world inertia
     this.updateInertiaWorld();
 };
+
+/**
+ * Is Sleeping
+ */
+Body.prototype.isSleeping = function(){
+    return this.sleepState === Body.SLEEPING;
+}
+
+/**
+ * Is Sleepy
+ */
+Body.prototype.isSleepy = function(){
+    return this.sleepState === Body.SLEEPY;
+}
+
+/**
+ * Is Awake
+ */
+Body.prototype.isAwake = function(){
+    return this.sleepState === Body.AWAKE;
+}
