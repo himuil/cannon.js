@@ -824,12 +824,12 @@ World.prototype.internalStep = function(dt){
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.collisionMatrix.get(bi, bj)){
             // collision stay
-            World_step_collideEvent.event = Body.ON_COLLISION_STAY;
+            World_step_collideEvent.event = 'onCollisionStay';
 
         } else {
             this.collisionMatrix.set(bi, bj, true);
             // collision enter
-            World_step_collideEvent.event = Body.ON_COLLISION_ENTER;
+            World_step_collideEvent.event = 'onCollisionEnter';
         }
         World_step_collideEvent.body = bj;
         World_step_collideEvent.contacts = data; // Need ?
@@ -865,7 +865,7 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.event = Body.ON_COLLISION_EXIT;
+                    World_step_collideEvent.event = 'onCollisionExit';
                     World_step_collideEvent.body = bj;
                     World_step_collideEvent.contacts = data;
                     bi.dispatchEvent(World_step_collideEvent);
@@ -987,10 +987,10 @@ var removals = [];
 var triggeredEvent = {
     type: 'triggered',
     event: '',
-    bodyA: null, // need ?
-    bodyB: null, // need ?
-    shapeA: null,
-    shapeB: null
+    selfBody: null, // need ?
+    otherBody: null, // need ?
+    selfShape: null,
+    otherShape: null
 };
 World.prototype.emitTriggeredEvents =function(){
     
@@ -1006,11 +1006,17 @@ World.prototype.emitTriggeredEvents =function(){
         var shapeB = this.getShapeById(removals[i+1]);
         // if(!shapeA.body.isSleeping || !shapeB.body.isSleeping){
         this.triggerMatrix.set(shapeA, shapeB, false);
-        triggeredEvent.shapeA = shapeA;
-        triggeredEvent.shapeB = shapeB;
-        triggeredEvent.bodyA = shapeA.body;
-        triggeredEvent.bodyB = shapeB.body;
-        this.dispatchEvent(triggeredEvent);
+        triggeredEvent.selfShape = shapeA;
+        triggeredEvent.otherShape = shapeB;
+        triggeredEvent.selfBody = shapeA.body;
+        triggeredEvent.otherBody = shapeB.body;
+        shapeA.dispatchEvent(triggeredEvent);
+
+        triggeredEvent.selfShape = shapeB;
+        triggeredEvent.otherShape = shapeA;
+        triggeredEvent.selfBody = shapeB.body;
+        triggeredEvent.otherBody = shapeA.body;
+        shapeB.dispatchEvent(triggeredEvent);
         // }
     }
 
@@ -1027,11 +1033,17 @@ World.prototype.emitTriggeredEvents =function(){
             this.triggerMatrix.set(shapeA, shapeB, true);
             triggeredEvent.event = 'onTriggerEnter';
         }
-        triggeredEvent.shapeA = shapeA;
-        triggeredEvent.shapeB = shapeB;
-        triggeredEvent.bodyA = shapeA.body;
-        triggeredEvent.bodyB = shapeB.body;
-        this.dispatchEvent(triggeredEvent);
+        triggeredEvent.selfShape = shapeA;
+        triggeredEvent.otherShape = shapeB;
+        triggeredEvent.selfBody = shapeA.body;
+        triggeredEvent.otherBody = shapeB.body;
+        shapeA.dispatchEvent(triggeredEvent);
+
+        triggeredEvent.selfShape = shapeB;
+        triggeredEvent.otherShape = shapeA;
+        triggeredEvent.selfBody = shapeB.body;
+        triggeredEvent.otherBody = shapeA.body;
+        shapeB.dispatchEvent(triggeredEvent);
     }
 };
 
@@ -1043,10 +1055,7 @@ World.prototype.clearForces = function(){
     var bodies = this.bodies;
     var N = bodies.length;
     for(var i=0; i !== N; i++){
-        var b = bodies[i],
-            force = b.force,
-            tau = b.torque;
-
+        var b = bodies[i];
         b.force.set(0,0,0);
         b.torque.set(0,0,0);
     }

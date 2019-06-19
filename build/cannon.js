@@ -1,4 +1,4 @@
-// Wed, 19 Jun 2019 13:56:44 GMT
+// Wed, 19 Jun 2019 14:23:29 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -5817,11 +5817,6 @@ Body.prototype.constructor = Body;
  */
 Body.COLLIDE_EVENT_NAME = "collide";
 
-Body.ON_COLLISION_ENTER = "onCollisionEnter";
-
-Body.ON_COLLISION_STAY = "onCollisionStay";
-
-Body.ON_COLLISION_EXIT = "onCollisionExit";
 
 /**
  * A dynamic body is fully simulated. Can be moved manually by the user, but normally they move according to forces. A dynamic body can collide with all body types. A dynamic body always has finite, non-zero mass.
@@ -10067,6 +10062,7 @@ Plane.prototype.updateBoundingSphereRadius = function(){
 },{"../math/Vec3":31,"./Shape":44}],44:[function(_dereq_,module,exports){
 module.exports = Shape;
 
+var EventTarget = _dereq_('../utils/EventTarget');
 var Shape = _dereq_('./Shape');
 var Vec3 = _dereq_('../math/Vec3');
 var Quaternion = _dereq_('../math/Quaternion');
@@ -10086,6 +10082,7 @@ var Material = _dereq_('../material/Material');
 function Shape(options){
     options = options || {};
 
+    EventTarget.apply(this);
     /**
      * Identifyer of the Shape.
      * @property {number} id
@@ -10132,6 +10129,7 @@ function Shape(options){
      */
     this.body = null;
 }
+Shape.prototype = new EventTarget();
 Shape.prototype.constructor = Shape;
 
 /**
@@ -10183,7 +10181,7 @@ Shape.types = {
 };
 
 
-},{"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"./Shape":44}],45:[function(_dereq_,module,exports){
+},{"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"../utils/EventTarget":50,"./Shape":44}],45:[function(_dereq_,module,exports){
 module.exports = Sphere;
 
 var Shape = _dereq_('./Shape');
@@ -14419,12 +14417,12 @@ World.prototype.internalStep = function(dt){
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.collisionMatrix.get(bi, bj)){
             // collision stay
-            World_step_collideEvent.event = Body.ON_COLLISION_STAY;
+            World_step_collideEvent.event = 'onCollisionStay';
 
         } else {
             this.collisionMatrix.set(bi, bj, true);
             // collision enter
-            World_step_collideEvent.event = Body.ON_COLLISION_ENTER;
+            World_step_collideEvent.event = 'onCollisionEnter';
         }
         World_step_collideEvent.body = bj;
         World_step_collideEvent.contacts = data; // Need ?
@@ -14460,7 +14458,7 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.event = Body.ON_COLLISION_EXIT;
+                    World_step_collideEvent.event = 'onCollisionExit';
                     World_step_collideEvent.body = bj;
                     World_step_collideEvent.contacts = data;
                     bi.dispatchEvent(World_step_collideEvent);
@@ -14582,10 +14580,10 @@ var removals = [];
 var triggeredEvent = {
     type: 'triggered',
     event: '',
-    bodyA: null, // need ?
-    bodyB: null, // need ?
-    shapeA: null,
-    shapeB: null
+    selfBody: null, // need ?
+    otherBody: null, // need ?
+    selfShape: null,
+    otherShape: null
 };
 World.prototype.emitTriggeredEvents =function(){
     
@@ -14601,11 +14599,17 @@ World.prototype.emitTriggeredEvents =function(){
         var shapeB = this.getShapeById(removals[i+1]);
         // if(!shapeA.body.isSleeping || !shapeB.body.isSleeping){
         this.triggerMatrix.set(shapeA, shapeB, false);
-        triggeredEvent.shapeA = shapeA;
-        triggeredEvent.shapeB = shapeB;
-        triggeredEvent.bodyA = shapeA.body;
-        triggeredEvent.bodyB = shapeB.body;
-        this.dispatchEvent(triggeredEvent);
+        triggeredEvent.selfShape = shapeA;
+        triggeredEvent.otherShape = shapeB;
+        triggeredEvent.selfBody = shapeA.body;
+        triggeredEvent.otherBody = shapeB.body;
+        shapeA.dispatchEvent(triggeredEvent);
+
+        triggeredEvent.selfShape = shapeB;
+        triggeredEvent.otherShape = shapeA;
+        triggeredEvent.selfBody = shapeB.body;
+        triggeredEvent.otherBody = shapeA.body;
+        shapeB.dispatchEvent(triggeredEvent);
         // }
     }
 
@@ -14622,11 +14626,17 @@ World.prototype.emitTriggeredEvents =function(){
             this.triggerMatrix.set(shapeA, shapeB, true);
             triggeredEvent.event = 'onTriggerEnter';
         }
-        triggeredEvent.shapeA = shapeA;
-        triggeredEvent.shapeB = shapeB;
-        triggeredEvent.bodyA = shapeA.body;
-        triggeredEvent.bodyB = shapeB.body;
-        this.dispatchEvent(triggeredEvent);
+        triggeredEvent.selfShape = shapeA;
+        triggeredEvent.otherShape = shapeB;
+        triggeredEvent.selfBody = shapeA.body;
+        triggeredEvent.otherBody = shapeB.body;
+        shapeA.dispatchEvent(triggeredEvent);
+
+        triggeredEvent.selfShape = shapeB;
+        triggeredEvent.otherShape = shapeA;
+        triggeredEvent.selfBody = shapeB.body;
+        triggeredEvent.otherBody = shapeA.body;
+        shapeB.dispatchEvent(triggeredEvent);
     }
 };
 
@@ -14638,10 +14648,7 @@ World.prototype.clearForces = function(){
     var bodies = this.bodies;
     var N = bodies.length;
     for(var i=0; i !== N; i++){
-        var b = bodies[i],
-            force = b.force,
-            tau = b.torque;
-
+        var b = bodies[i];
         b.force.set(0,0,0);
         b.torque.set(0,0,0);
     }
