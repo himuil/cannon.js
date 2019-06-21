@@ -556,7 +556,9 @@ var
     World_step_collideEvent = {
         type:"collide", 
         event:'', 
-        body:null, 
+        body:null,
+        selfShape:null,
+        otherShape:null,
         contacts:null 
     },
     World_step_oldContacts = [], // Pools for unused objects
@@ -771,9 +773,9 @@ World.prototype.internalStep = function(dt){
 		// }
 
         
-        var item = this.contactsDic.get(bi.id, bj.id);
+        var item = this.contactsDic.get(si.id, sj.id);
         if ( item == null) {
-            item = this.contactsDic.set(bi.id, bj.id, []);
+            item = this.contactsDic.set(si.id, sj.id, []);
         }
         item.push(c);
     }
@@ -795,8 +797,8 @@ World.prototype.internalStep = function(dt){
 
         var bi = data[0].bi;
         var bj = data[0].bj;
-        // var si = data[0].si;
-        // var sj = data[0].sj;
+        var si = data[0].si;
+        var sj = data[0].sj;
 
         if( bi.allowSleep &&
             bi.type === Body.DYNAMIC &&
@@ -837,10 +839,14 @@ World.prototype.internalStep = function(dt){
             World_step_collideEvent.event = 'onCollisionEnter';
         }
         World_step_collideEvent.body = bj;
+        World_step_collideEvent.selfShape = si;
+        World_step_collideEvent.otherShape = sj;
         World_step_collideEvent.contacts = data; // Need ?
         bi.dispatchEvent(World_step_collideEvent);
 
         World_step_collideEvent.body = bi;
+        World_step_collideEvent.selfShape = sj;
+        World_step_collideEvent.otherShape = si;
         bj.dispatchEvent(World_step_collideEvent);
 
         this.bodyOverlapKeeper.set(bi.id, bj.id);
@@ -851,10 +857,10 @@ World.prototype.internalStep = function(dt){
         var c = oldcontacts[i];
 
         // Get current collision indeces
-        var bi = c.bi;
-        var bj = c.bj;
-        if(this.oldContactsDic.get(bi.id, bj.id) == null){
-            this.oldContactsDic.set(bi.id, bj.id, c);
+        var si = c.si;
+        var sj = c.sj;
+        if(this.oldContactsDic.get(si.id, sj.id) == null){
+            this.oldContactsDic.set(si.id, sj.id, c);
         }
     }
 
@@ -874,9 +880,13 @@ World.prototype.internalStep = function(dt){
                     World_step_collideEvent.body = bj;
                     World_step_collideEvent.contacts.length = 0;
                     World_step_collideEvent.contacts.push(data);
+                    World_step_collideEvent.selfShape = si;
+                    World_step_collideEvent.otherShape = sj;
                     bi.dispatchEvent(World_step_collideEvent);
 
                     World_step_collideEvent.body = bi;
+                    World_step_collideEvent.selfShape = sj;
+                    World_step_collideEvent.otherShape = si;
                     bj.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
