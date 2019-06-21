@@ -562,7 +562,7 @@ ConvexPolyhedron.prototype.clipFaceAgainstHull = function(separatingNormal, posA
         var depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; //???
         /*console.log("depth calc from normal=",planeNormalWS.toString()," and constant "+planeEqWS+" and vertex ",pVtxIn[i].toString()," gives "+depth);*/
         if (depth <=minDist){
-            console.log("clamped: depth="+depth+" to minDist="+(minDist+""));
+            // console.log("clamped: depth="+depth+" to minDist="+(minDist+""));
             depth = minDist;
         }
 
