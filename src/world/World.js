@@ -872,7 +872,8 @@ World.prototype.internalStep = function(dt){
                     // collision exit
                     World_step_collideEvent.event = 'onCollisionExit';
                     World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contacts = data;
+                    World_step_collideEvent.contacts.length = 0;
+                    World_step_collideEvent.contacts.push(data);
                     bi.dispatchEvent(World_step_collideEvent);
 
                     World_step_collideEvent.body = bi;
@@ -883,7 +884,6 @@ World.prototype.internalStep = function(dt){
             }
         }
     }
-    
     
     this.contactsDic.reset();
     this.oldContactsDic.reset();
@@ -919,6 +919,7 @@ World.prototype.internalStep = function(dt){
 
     // Apply damping, see http://code.google.com/p/bullet/issues/detail?id=74 for details
     var pow = Math.pow;
+    N = this.numObjects();
     for(i=0; i!==N; i++){
         var bi = bodies[i];
         if(bi.type & DYNAMIC){ // Only for dynamic bodies

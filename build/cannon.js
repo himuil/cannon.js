@@ -1,4 +1,4 @@
-// Wed, 19 Jun 2019 15:19:24 GMT
+// Fri, 21 Jun 2019 05:54:33 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -6031,7 +6031,12 @@ var tmpQuat = new Quaternion();
  * @param {Quaternion} [_orientation]
  * @return {Body} The body object, for chainability.
  */
-Body.prototype.addShape = function(shape, _offset, _orientation){
+Body.prototype.addShape = function(shape, _offset, _orientation){    
+    var idx = this.shapes.indexOf(shape);
+    if(idx !== -1){
+        return;
+    }
+
     var offset = new Vec3();
     var orientation = new Quaternion();
 
@@ -6063,8 +6068,8 @@ Body.prototype.removeShape = function(shape){
     if(idx === -1){
         return;
     }
-    shape.body = null;
-    delete World.idToShapeMap[shape.id];
+    // shape.body = null;  needed ?
+    // delete World.idToShapeMap[shape.id];  needed ?
  
     this.shapes.splice(idx, 1);
     this.shapeOffsets.splice(idx, 1);
@@ -8830,7 +8835,7 @@ ConvexPolyhedron.prototype.clipFaceAgainstHull = function(separatingNormal, posA
         var depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; //???
         /*console.log("depth calc from normal=",planeNormalWS.toString()," and constant "+planeEqWS+" and vertex ",pVtxIn[i].toString()," gives "+depth);*/
         if (depth <=minDist){
-            console.log("clamped: depth="+depth+" to minDist="+(minDist+""));
+            // console.log("clamped: depth="+depth+" to minDist="+(minDist+""));
             depth = minDist;
         }
 
@@ -14477,7 +14482,8 @@ World.prototype.internalStep = function(dt){
                     // collision exit
                     World_step_collideEvent.event = 'onCollisionExit';
                     World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contacts = data;
+                    World_step_collideEvent.contacts.length = 0;
+                    World_step_collideEvent.contacts.push(data);
                     bi.dispatchEvent(World_step_collideEvent);
 
                     World_step_collideEvent.body = bi;
@@ -14488,7 +14494,6 @@ World.prototype.internalStep = function(dt){
             }
         }
     }
-    
     
     this.contactsDic.reset();
     this.oldContactsDic.reset();
@@ -14524,6 +14529,7 @@ World.prototype.internalStep = function(dt){
 
     // Apply damping, see http://code.google.com/p/bullet/issues/detail?id=74 for details
     var pow = Math.pow;
+    N = this.numObjects();
     for(i=0; i!==N; i++){
         var bi = bodies[i];
         if(bi.type & DYNAMIC){ // Only for dynamic bodies

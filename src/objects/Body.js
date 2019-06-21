@@ -600,7 +600,12 @@ var tmpQuat = new Quaternion();
  * @param {Quaternion} [_orientation]
  * @return {Body} The body object, for chainability.
  */
-Body.prototype.addShape = function(shape, _offset, _orientation){
+Body.prototype.addShape = function(shape, _offset, _orientation){    
+    var idx = this.shapes.indexOf(shape);
+    if(idx !== -1){
+        return;
+    }
+
     var offset = new Vec3();
     var orientation = new Quaternion();
 
@@ -632,8 +637,8 @@ Body.prototype.removeShape = function(shape){
     if(idx === -1){
         return;
     }
-    shape.body = null;
-    delete World.idToShapeMap[shape.id];
+    // shape.body = null;  needed ?
+    // delete World.idToShapeMap[shape.id];  needed ?
  
     this.shapes.splice(idx, 1);
     this.shapeOffsets.splice(idx, 1);
