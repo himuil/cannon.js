@@ -1,4 +1,4 @@
-// Fri, 21 Jun 2019 09:18:30 GMT
+// Sat, 22 Jun 2019 05:53:19 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -37,7 +37,11 @@ module.exports={
     "engine",
     "3d"
   ],
-  "main": "./build/cannon.js",
+  "scripts": {
+    "build":"grunt && npm run preprocess && grunt addLicense && grunt addDate",
+    "preprocess":"node node_modules/uglify-js/bin/uglifyjs build/cannon.js -o build/cannon.min.js -d doProfiling=false,CANNON=false,DEBUG=false -c -m"
+  },
+  "main": "./build/cannon.min.js",
   "engines": {
     "node": "*"
   },
@@ -13608,6 +13612,7 @@ Narrowphase.prototype.sphereHeightfield = function (
 };
 
 },{"../collision/AABB":3,"../collision/Ray":10,"../equations/ContactEquation":20,"../equations/FrictionEquation":22,"../math/Quaternion":29,"../math/Transform":30,"../math/Vec3":31,"../objects/Body":32,"../shapes/ConvexPolyhedron":39,"../shapes/Shape":44,"../solver/Solver":48,"../utils/Vec3Pool":55}],57:[function(_dereq_,module,exports){
+(function (global){
 /* global performance */
 
 module.exports = World;
@@ -13631,7 +13636,18 @@ var RaycastResult = _dereq_('../collision/RaycastResult');
 var AABB = _dereq_('../collision/AABB');
 var Ray = _dereq_('../collision/Ray');
 var NaiveBroadphase = _dereq_('../collision/NaiveBroadphase');
-
+if(global){
+    global['CANNON'] = true;
+}
+if(CANNON){
+    if(global){
+        global['doProfiling'] = false;
+        global['DEBUG'] = true;
+    }else if(window){
+        window['doProfiling'] = false;
+        window['DEBUG'] = true;
+    }
+}
 /**
  * The physics world
  * @class World
@@ -13792,12 +13808,6 @@ function World(options){
      * @type {ContactMaterial}
      */
     this.defaultContactMaterial = new ContactMaterial(this.defaultMaterial, this.defaultMaterial, { friction: 0.3, restitution: 0.0 });
-
-    /**
-     * @property doProfiling
-     * @type {Boolean}
-     */
-    this.doProfiling = false;
 
     /**
      * @property profile
@@ -14088,20 +14098,22 @@ World.prototype.addContactMaterial = function(cmat) {
 };
 
 // performance.now()
-if(typeof performance === 'undefined'){
-    performance = {};
-}
-if(!performance.now){
-    var nowOffset = Date.now();
-    if (performance.timing && performance.timing.navigationStart){
-        nowOffset = performance.timing.navigationStart;
+if(DEBUG){
+    if(typeof performance === 'undefined'){
+        performance = {};
     }
-    performance.now = function(){
-        return Date.now() - nowOffset;
-    };
+    if(!performance.now){
+        var nowOffset = Date.now();
+        if (performance.timing && performance.timing.navigationStart){
+            nowOffset = performance.timing.navigationStart;
+        }
+        performance.now = function(){
+            return Date.now() - nowOffset;
+        };
+    }
 }
 
-var step_tmp1 = new Vec3();
+// var step_tmp1 = new Vec3();
 
 /**
  * Step the physics world forward in time.
@@ -14201,13 +14213,12 @@ World.prototype.internalStep = function(dt){
         bodies = this.bodies,
         solver = this.solver,
         gravity = this.gravity,
-        doProfiling = this.doProfiling,
         profile = this.profile,
         DYNAMIC = Body.DYNAMIC,
         profilingStart,
         constraints = this.constraints,
         frictionEquationPool = World_step_frictionEquationPool,
-        gnorm = gravity.norm(),
+        // gnorm = gravity.norm(),
         gx = gravity.x,
         gy = gravity.y,
         gz = gravity.z,
@@ -14448,16 +14459,18 @@ World.prototype.internalStep = function(dt){
             // collision enter
             World_step_collideEvent.event = 'onCollisionEnter';
         }
-        World_step_collideEvent.body = bj;
+
+        World_step_collideEvent.contacts = data;
+
+        World_step_collideEvent.body = sj.body;
         World_step_collideEvent.selfShape = si;
         World_step_collideEvent.otherShape = sj;
-        World_step_collideEvent.contacts = data; // Need ?
-        bi.dispatchEvent(World_step_collideEvent);
+        si.body.dispatchEvent(World_step_collideEvent);
 
-        World_step_collideEvent.body = bi;
+        World_step_collideEvent.body = si.body;
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
-        bj.dispatchEvent(World_step_collideEvent);
+        sj.body.dispatchEvent(World_step_collideEvent);
 
         this.bodyOverlapKeeper.set(bi.id, bj.id);
     }
@@ -14486,18 +14499,18 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contacts.length = 0;
-                    World_step_collideEvent.contacts.push(data);
+                    World_step_collideEvent.event = 'onCollisionExit';                    
+                    World_step_collideEvent.body = sj.body;
                     World_step_collideEvent.selfShape = si;
                     World_step_collideEvent.otherShape = sj;
-                    bi.dispatchEvent(World_step_collideEvent);
+                    World_step_collideEvent.contacts.length = 0;
+                    World_step_collideEvent.contacts.push(data);
+                    si.body.dispatchEvent(World_step_collideEvent);
 
-                    World_step_collideEvent.body = bi;
+                    World_step_collideEvent.body = si.body;
                     World_step_collideEvent.selfShape = sj;
                     World_step_collideEvent.otherShape = si;
-                    bj.dispatchEvent(World_step_collideEvent);
+                    sj.body.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
                 }
@@ -14556,13 +14569,13 @@ World.prototype.internalStep = function(dt){
 
     this.dispatchEvent(World_step_preStepEvent);
 
-    // Invoke pre-step callbacks
-    for(i=0; i!==N; i++){
-        var bi = bodies[i];
-        if(bi.preStep){
-            bi.preStep.call(bi);
-        }
-    }
+    // // Invoke pre-step callbacks
+    // for(i=0; i!==N; i++){
+    //     var bi = bodies[i];
+    //     if(bi.preStep){
+    //         bi.preStep.call(bi);
+    //     }
+    // }
 
     // Leap frog
     // vnew = v + h*f/m
@@ -14591,14 +14604,14 @@ World.prototype.internalStep = function(dt){
 
     this.dispatchEvent(World_step_postStepEvent);
 
-    // Invoke post-step callbacks
-    for(i=0; i!==N; i++){
-        var bi = bodies[i];
-        var postStep = bi.postStep;
-        if(postStep){
-            postStep.call(bi);
-        }
-    }
+    // // Invoke post-step callbacks
+    // for(i=0; i!==N; i++){
+    //     var bi = bodies[i];
+    //     var postStep = bi.postStep;
+    //     if(postStep){
+    //         postStep.call(bi);
+    //     }
+    // }
 
     // Sleeping update
     if(this.allowSleep){
@@ -14687,6 +14700,7 @@ World.prototype.clearForces = function(){
     }
 };
 
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../collision/AABB":3,"../collision/ArrayCollisionMatrix":4,"../collision/NaiveBroadphase":7,"../collision/ObjectCollisionMatrix":8,"../collision/OverlapKeeper":9,"../collision/Ray":10,"../collision/RaycastResult":11,"../equations/ContactEquation":20,"../equations/FrictionEquation":22,"../material/ContactMaterial":25,"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"../objects/Body":32,"../shapes/Shape":44,"../solver/GSSolver":47,"../utils/EventTarget":50,"../utils/TupleDictionary":53,"./Narrowphase":56}]},{},[2])
 (2)
 });

@@ -35,14 +35,14 @@ CANNON.Demo = function(options){
         scene: 0,
         paused: false,
         rendermode: "solid",
-        constraints: false,
-        contacts: false,  // Contact points
-        cm2contact: false, // center of mass to contact points
-        normals: false, // contact normals
-        axes: false, // "local" frame axes
+        constraints: true,
+        contacts: true,  // Contact points
+        cm2contact: true, // center of mass to contact points
+        normals: true, // contact normals
+        axes: true, // "local" frame axes
         particleSize: 0.1,
-        shadows: false,
-        aabbs: false,
+        shadows: true,
+        aabbs: true,
         profiling: false,
         maxSubSteps: 20
     };
@@ -573,7 +573,7 @@ CANNON.Demo = function(options){
             });
             i++;
         }
-        world.doProfiling = false;
+        window['doProfiling'] = false;
         smoothie.stop();
         smoothieCanvas.style.display = "none";
 
@@ -616,11 +616,11 @@ CANNON.Demo = function(options){
             rf.add(settings,'aabbs');
             rf.add(settings,'profiling').onChange(function(profiling){
                 if(profiling){
-                    world.doProfiling = true;
+                    window['doProfiling'] = true;
                     smoothie.start();
                     smoothieCanvas.style.display = "block";
                 } else {
-                    world.doProfiling = false;
+                    window['doProfiling'] = false;
                     smoothie.stop();
                     smoothieCanvas.style.display = "none";
                 }

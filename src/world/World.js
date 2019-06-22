@@ -21,7 +21,18 @@ var RaycastResult = require('../collision/RaycastResult');
 var AABB = require('../collision/AABB');
 var Ray = require('../collision/Ray');
 var NaiveBroadphase = require('../collision/NaiveBroadphase');
-
+if(global){
+    global['CANNON'] = true;
+}
+if(CANNON){
+    if(global){
+        global['doProfiling'] = false;
+        global['DEBUG'] = true;
+    }else if(window){
+        window['doProfiling'] = false;
+        window['DEBUG'] = true;
+    }
+}
 /**
  * The physics world
  * @class World
@@ -182,12 +193,6 @@ function World(options){
      * @type {ContactMaterial}
      */
     this.defaultContactMaterial = new ContactMaterial(this.defaultMaterial, this.defaultMaterial, { friction: 0.3, restitution: 0.0 });
-
-    /**
-     * @property doProfiling
-     * @type {Boolean}
-     */
-    this.doProfiling = false;
 
     /**
      * @property profile
@@ -478,20 +483,22 @@ World.prototype.addContactMaterial = function(cmat) {
 };
 
 // performance.now()
-if(typeof performance === 'undefined'){
-    performance = {};
-}
-if(!performance.now){
-    var nowOffset = Date.now();
-    if (performance.timing && performance.timing.navigationStart){
-        nowOffset = performance.timing.navigationStart;
+if(DEBUG){
+    if(typeof performance === 'undefined'){
+        performance = {};
     }
-    performance.now = function(){
-        return Date.now() - nowOffset;
-    };
+    if(!performance.now){
+        var nowOffset = Date.now();
+        if (performance.timing && performance.timing.navigationStart){
+            nowOffset = performance.timing.navigationStart;
+        }
+        performance.now = function(){
+            return Date.now() - nowOffset;
+        };
+    }
 }
 
-var step_tmp1 = new Vec3();
+// var step_tmp1 = new Vec3();
 
 /**
  * Step the physics world forward in time.
@@ -591,13 +598,12 @@ World.prototype.internalStep = function(dt){
         bodies = this.bodies,
         solver = this.solver,
         gravity = this.gravity,
-        doProfiling = this.doProfiling,
         profile = this.profile,
         DYNAMIC = Body.DYNAMIC,
         profilingStart,
         constraints = this.constraints,
         frictionEquationPool = World_step_frictionEquationPool,
-        gnorm = gravity.norm(),
+        // gnorm = gravity.norm(),
         gx = gravity.x,
         gy = gravity.y,
         gz = gravity.z,
@@ -838,16 +844,18 @@ World.prototype.internalStep = function(dt){
             // collision enter
             World_step_collideEvent.event = 'onCollisionEnter';
         }
-        World_step_collideEvent.body = bj;
+
+        World_step_collideEvent.contacts = data;
+
+        World_step_collideEvent.body = sj.body;
         World_step_collideEvent.selfShape = si;
         World_step_collideEvent.otherShape = sj;
-        World_step_collideEvent.contacts = data; // Need ?
-        bi.dispatchEvent(World_step_collideEvent);
+        si.body.dispatchEvent(World_step_collideEvent);
 
-        World_step_collideEvent.body = bi;
+        World_step_collideEvent.body = si.body;
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
-        bj.dispatchEvent(World_step_collideEvent);
+        sj.body.dispatchEvent(World_step_collideEvent);
 
         this.bodyOverlapKeeper.set(bi.id, bj.id);
     }
@@ -876,18 +884,18 @@ World.prototype.internalStep = function(dt){
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);    
                     // collision exit
-                    World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = bj;
-                    World_step_collideEvent.contacts.length = 0;
-                    World_step_collideEvent.contacts.push(data);
+                    World_step_collideEvent.event = 'onCollisionExit';                    
+                    World_step_collideEvent.body = sj.body;
                     World_step_collideEvent.selfShape = si;
                     World_step_collideEvent.otherShape = sj;
-                    bi.dispatchEvent(World_step_collideEvent);
+                    World_step_collideEvent.contacts.length = 0;
+                    World_step_collideEvent.contacts.push(data);
+                    si.body.dispatchEvent(World_step_collideEvent);
 
-                    World_step_collideEvent.body = bi;
+                    World_step_collideEvent.body = si.body;
                     World_step_collideEvent.selfShape = sj;
                     World_step_collideEvent.otherShape = si;
-                    bj.dispatchEvent(World_step_collideEvent);
+                    sj.body.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
                 }
@@ -946,13 +954,13 @@ World.prototype.internalStep = function(dt){
 
     this.dispatchEvent(World_step_preStepEvent);
 
-    // Invoke pre-step callbacks
-    for(i=0; i!==N; i++){
-        var bi = bodies[i];
-        if(bi.preStep){
-            bi.preStep.call(bi);
-        }
-    }
+    // // Invoke pre-step callbacks
+    // for(i=0; i!==N; i++){
+    //     var bi = bodies[i];
+    //     if(bi.preStep){
+    //         bi.preStep.call(bi);
+    //     }
+    // }
 
     // Leap frog
     // vnew = v + h*f/m
@@ -981,14 +989,14 @@ World.prototype.internalStep = function(dt){
 
     this.dispatchEvent(World_step_postStepEvent);
 
-    // Invoke post-step callbacks
-    for(i=0; i!==N; i++){
-        var bi = bodies[i];
-        var postStep = bi.postStep;
-        if(postStep){
-            postStep.call(bi);
-        }
-    }
+    // // Invoke post-step callbacks
+    // for(i=0; i!==N; i++){
+    //     var bi = bodies[i];
+    //     var postStep = bi.postStep;
+    //     if(postStep){
+    //         postStep.call(bi);
+    //     }
+    // }
 
     // Sleeping update
     if(this.allowSleep){

@@ -45,17 +45,18 @@
           // Sphere
           var sphere = new CANNON.Sphere(size);
           var sphereBody = new CANNON.Body({ mass: 30 });
-          sphereBody.addShape(sphere);
-          var pos = new CANNON.Vec3(0,0,size);
-          sphereBody.position.set(5,0,size*6);
+          sphereBody.addShape(sphere, new CANNON.Vec3(1,0,0));
           
           // Box
           var box = new CANNON.Box(new CANNON.Vec3(size, size, size));
-          sphereBody.addShape(box);
+          sphereBody.addShape(box, new CANNON.Vec3(-1,0,3));
 
           var sphere2 = new CANNON.Sphere(size);
           sphere2.collisionResponse = false;
-          sphereBody.addShape(sphere2, new CANNON.Vec3(0,0,-2));
+          sphereBody.addShape(sphere2, new CANNON.Vec3(-3,2,0));
+
+          var pos = new CANNON.Vec3(0,0,size);
+          sphereBody.position.set(1,0,size*6);
 
           world.addBody(sphereBody);
           demo.addVisual(sphereBody);

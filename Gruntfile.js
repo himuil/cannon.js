@@ -60,7 +60,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
     grunt.loadNpmTasks('grunt-contrib-nodeunit');
     grunt.loadNpmTasks('grunt-browserify');
-    grunt.registerTask('default', ['test', 'concat', 'browserify', 'uglify', 'addLicense', 'addDate', 'requireJsFix']);
+    grunt.registerTask('default', ['test', 'concat', 'browserify', 'uglify', 'requireJsFix']);
     grunt.registerTask('test', ['nodeunit']);
 
     grunt.registerTask('addDate','Adds the current date to the top of the built files',function(){
