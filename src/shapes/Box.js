@@ -91,9 +91,15 @@ Box.prototype.calculateLocalInertia = function(mass,target){
 
 Box.calculateInertia = function(halfExtents,mass,target){
     var e = halfExtents;
-    target.x = 1.0 / 12.0 * mass * (   2*e.y*2*e.y + 2*e.z*2*e.z );
-    target.y = 1.0 / 12.0 * mass * (   2*e.x*2*e.x + 2*e.z*2*e.z );
-    target.z = 1.0 / 12.0 * mass * (   2*e.y*2*e.y + 2*e.x*2*e.x );
+    if (e.isZero()) {
+        target.x = 1.333333;
+        target.y = 1.333333;
+        target.z = 1.333333;
+    }else{
+        target.x = 1.0 / 12.0 * mass * (   2*e.y*2*e.y + 2*e.z*2*e.z );
+        target.y = 1.0 / 12.0 * mass * (   2*e.x*2*e.x + 2*e.z*2*e.z );
+        target.z = 1.0 / 12.0 * mass * (   2*e.y*2*e.y + 2*e.x*2*e.x );
+    }
 };
 
 /**
