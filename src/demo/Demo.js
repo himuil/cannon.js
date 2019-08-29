@@ -322,7 +322,7 @@ CANNON.Demo = function(options){
                     continue;
                 }
 
-                var nc = c.equations.normal;
+                var nc = c.equations[0];
 
                 var bi=nc.bi, bj=nc.bj, line = distanceConstraintMeshCache.request();
                 var i=bi.id, j=bj.id;
@@ -348,13 +348,23 @@ CANNON.Demo = function(options){
                 if(!(c instanceof CANNON.PointToPointConstraint)){
                     continue;
                 }
-                var n = c.equations.normal;
+                var n = c.equations[0];
                 var bi=n.bi, bj=n.bj, relLine1 = p2pConstraintMeshCache.request(), relLine2 = p2pConstraintMeshCache.request(), diffLine = p2pConstraintMeshCache.request();
                 var i=bi.id, j=bj.id;
 
                 relLine1.scale.set( n.ri.x, n.ri.y, n.ri.z );
                 relLine2.scale.set( n.rj.x, n.rj.y, n.rj.z );
-                diffLine.scale.set( -n.penetrationVec.x, -n.penetrationVec.y, -n.penetrationVec.z );
+                
+                var penetrationVec = new CANNON.Vec3();
+                penetrationVec.copy(n.bj.position);
+                penetrationVec.vadd(n.rj, penetrationVec);
+                penetrationVec.vsub(n.bi.position, penetrationVec);
+                penetrationVec.vsub(n.ri, penetrationVec);
+            
+                var g = n.ni.dot(penetrationVec);
+
+                diffLine.scale.set( -g.x, -g.y, -g.z );
+
                 makeSureNotZero(relLine1.scale);
                 makeSureNotZero(relLine2.scale);
                 makeSureNotZero(diffLine.scale);
