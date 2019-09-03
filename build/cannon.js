@@ -1,4 +1,4 @@
-// Thu, 22 Aug 2019 03:43:19 GMT
+// Tue, 03 Sep 2019 05:58:16 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -14457,87 +14457,7 @@ World.prototype.internalStep = function(dt){
 
     var ncontacts = contacts.length;
     for(i = 0; i!==ncontacts; i++){
-
-        // Current contact
-        var c = contacts[i];
-
-        // Get current collision indeces
-        var bi = c.bi,
-            bj = c.bj,
-            si = c.si,
-            sj = c.sj;
-
-        // Get collision properties
-        var cm;
-        if(bi.material && bj.material){
-            cm = this.getContactMaterial(bi.material,bj.material) || this.defaultContactMaterial;
-        } else {
-            cm = this.defaultContactMaterial;
-        }
-
-        // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
-
-        var mu = cm.friction;
-        // c.restitution = cm.restitution;
-
-        // If friction or restitution were specified in the material, use them
-        if(bi.material && bj.material){
-            if(bi.material.friction >= 0 && bj.material.friction >= 0){
-                mu = bi.material.friction * bj.material.friction;
-            }
-
-            if(bi.material.restitution >= 0 && bj.material.restitution >= 0){
-                c.restitution = bi.material.restitution * bj.material.restitution;
-            }
-        }
-
-		// c.setSpookParams(
-  //           cm.contactEquationStiffness,
-  //           cm.contactEquationRelaxation,
-  //           dt
-  //       );
-
-		solver.addEquation(c);
-
-		// // Add friction constraint equation
-		// if(mu > 0){
-
-		// 	// Create 2 tangent equations
-		// 	var mug = mu * gnorm;
-		// 	var reducedMass = (bi.invMass + bj.invMass);
-		// 	if(reducedMass > 0){
-		// 		reducedMass = 1/reducedMass;
-		// 	}
-		// 	var pool = frictionEquationPool;
-		// 	var c1 = pool.length ? pool.pop() : new FrictionEquation(bi,bj,mug*reducedMass);
-		// 	var c2 = pool.length ? pool.pop() : new FrictionEquation(bi,bj,mug*reducedMass);
-		// 	this.frictionEquations.push(c1, c2);
-
-		// 	c1.bi = c2.bi = bi;
-		// 	c1.bj = c2.bj = bj;
-		// 	c1.minForce = c2.minForce = -mug*reducedMass;
-		// 	c1.maxForce = c2.maxForce = mug*reducedMass;
-
-		// 	// Copy over the relative vectors
-		// 	c1.ri.copy(c.ri);
-		// 	c1.rj.copy(c.rj);
-		// 	c2.ri.copy(c.ri);
-		// 	c2.rj.copy(c.rj);
-
-		// 	// Construct tangents
-		// 	c.ni.tangents(c1.t, c2.t);
-
-  //           // Set spook params
-  //           c1.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, dt);
-  //           c2.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, dt);
-
-  //           c1.enabled = c2.enabled = c.enabled;
-
-		// 	// Add equations to solver
-		// 	solver.addEquation(c1);
-		// 	solver.addEquation(c2);
-		// }
-
+        solver.addEquation(contacts[i]);
     }
 
     if(doProfiling){
