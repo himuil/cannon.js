@@ -3,14 +3,14 @@
 // tslint:disable-next-line:no-namespace
 declare namespace CANNON {
 
-    export interface IAABBOptions {
+    /*export*/ interface IAABBOptions {
 
         upperBound?: Vec3;
         lowerBound?: Vec3;
 
     }
 
-    export class AABB {
+    /*export*/ class AABB {
 
         public lowerBound: Vec3;
         public upperBound: Vec3;
@@ -28,7 +28,7 @@ declare namespace CANNON {
 
     }
 
-    export class ArrayCollisionMatrix {
+    /*export*/ class ArrayCollisionMatrix {
 
         public matrix: Mat3[];
 
@@ -39,7 +39,7 @@ declare namespace CANNON {
 
     }
 
-    export class BroadPhase {
+    /*export*/ class BroadPhase {
 
         public world: World;
         public useBoundingBoxes: boolean;
@@ -57,7 +57,7 @@ declare namespace CANNON {
 
     }
 
-    export class GridBroadphase extends BroadPhase {
+    /*export*/ class GridBroadphase extends BroadPhase {
 
         public nx: number;
         public ny: number;
@@ -70,10 +70,10 @@ declare namespace CANNON {
 
     }
 
-    export class NaiveBroadphase extends BroadPhase {
+    /*export*/ class NaiveBroadphase extends BroadPhase {
     }
 
-    export class ObjectCollisionMatrix {
+    /*export*/ class ObjectCollisionMatrix {
 
         public matrix: number[];
 
@@ -84,7 +84,7 @@ declare namespace CANNON {
 
     }
 
-    export class Ray {
+    /*export*/ class Ray {
 
         public from: Vec3;
         public to: Vec3;
@@ -97,7 +97,7 @@ declare namespace CANNON {
 
     }
 
-    export class RaycastResult {
+    /*export*/ class RaycastResult {
 
         public rayFromWorld: Vec3;
         public rayToWorld: Vec3;
@@ -113,7 +113,7 @@ declare namespace CANNON {
 
     }
 
-    export class SAPBroadphase extends BroadPhase {
+    /*export*/ class SAPBroadphase extends BroadPhase {
 
         public static insertionSortX (a: any[]): any[];
         public static insertionSortY (a: any[]): any[];
@@ -131,14 +131,14 @@ declare namespace CANNON {
 
     }
 
-    export interface IConstraintOptions {
+    /*export*/ interface IConstraintOptions {
 
         collideConnected?: boolean;
         wakeUpBodies?: boolean;
 
     }
 
-    export class Constraint {
+    /*export*/ class Constraint {
 
         public equations: any[];
         public bodyA: Body;
@@ -154,13 +154,13 @@ declare namespace CANNON {
 
     }
 
-    export class DistanceConstraint extends Constraint {
+    /*export*/ class DistanceConstraint extends Constraint {
 
         constructor (bodyA: Body, bodyB: Body, distance: number, maxForce?: number);
 
     }
 
-    export interface IHingeConstraintOptions {
+    /*export*/ interface IHingeConstraintOptions {
 
         pivotA?: Vec3;
         axisA?: Vec3;
@@ -170,7 +170,7 @@ declare namespace CANNON {
 
     }
 
-    export class HingeConstraint extends Constraint {
+    /*export*/ class HingeConstraint extends Constraint {
 
         public motorEnabled: boolean;
         public motorTargetVelocity: number;
@@ -185,21 +185,21 @@ declare namespace CANNON {
 
     }
 
-    export class PointToPointConstraint extends Constraint {
+    /*export*/ class PointToPointConstraint extends Constraint {
 
         constructor (bodyA: Body, pivotA: Vec3, bodyB: Body, pivotB: Vec3, maxForce?: number);
 
     }
 
-    export interface ILockConstraintOptions {
+    /*export*/ interface ILockConstraintOptions {
         maxForce?: number;
     }
 
-    export class LockConstraint extends Constraint {
+    /*export*/ class LockConstraint extends Constraint {
         constructor (bodyA: Body, bodyB: Body, options?: ILockConstraintOptions);
     }
 
-    export interface IConeTwistConstraintOptions {
+    /*export*/ interface IConeTwistConstraintOptions {
         pivotA?: Vec3;
         pivotB?: Vec3;
         axisA?: Vec3;
@@ -207,11 +207,11 @@ declare namespace CANNON {
         maxForce?: number;
     }
 
-    export class ConeTwistConstraint extends Constraint {
+    /*export*/ class ConeTwistConstraint extends Constraint {
         constructor (bodyA: Body, bodyB: Body, options?: IConeTwistConstraintOptions);
     }
 
-    export class Equation {
+    /*export*/ class Equation {
 
         public readonly id: number;
         public minForce: number;
@@ -239,13 +239,13 @@ declare namespace CANNON {
 
     }
 
-    export class FrictionEquation extends Equation {
+    /*export*/ class FrictionEquation extends Equation {
 
         constructor (bi: Body, bj: Body, slipForce: number);
 
     }
 
-    export class RotationalEquation extends Equation {
+    /*export*/ class RotationalEquation extends Equation {
 
         public ni: Vec3;
         public nj: Vec3;
@@ -260,7 +260,7 @@ declare namespace CANNON {
 
     }
 
-    export class RotationalMotorEquation extends Equation {
+    /*export*/ class RotationalMotorEquation extends Equation {
 
         public axisA: Vec3;
         public axisB: Vec3;
@@ -272,7 +272,7 @@ declare namespace CANNON {
 
     }
 
-    export class ContactEquation extends Equation {
+    /*export*/ class ContactEquation extends Equation {
 
         public si: Shape;
         public sj: Shape;
@@ -292,7 +292,7 @@ declare namespace CANNON {
 
     }
 
-    export interface IContactMaterialOptions {
+    /*export*/ interface IContactMaterialOptions {
 
         friction?: number;
         restitution?: number;
@@ -303,7 +303,7 @@ declare namespace CANNON {
 
     }
 
-    export class ContactMaterial {
+    /*export*/ class ContactMaterial {
 
         public id: number;
         public materials: Material[];
@@ -318,7 +318,7 @@ declare namespace CANNON {
 
     }
 
-    export class Material {
+    /*export*/ class Material {
 
         public name: string;
         public id: number;
@@ -329,7 +329,7 @@ declare namespace CANNON {
 
     }
 
-    export class JacobianElement {
+    /*export*/ class JacobianElement {
 
         public spatial: Vec3;
         public rotational: Vec3;
@@ -339,7 +339,7 @@ declare namespace CANNON {
 
     }
 
-    export class Mat3 {
+    /*export*/ class Mat3 {
 
         constructor (elements?: number[]);
 
@@ -361,7 +361,7 @@ declare namespace CANNON {
 
     }
 
-    export class Quaternion {
+    /*export*/ class Quaternion {
 
         public x: number;
         public y: number;
@@ -389,7 +389,7 @@ declare namespace CANNON {
 
     }
 
-    export class Transform {
+    /*export*/ class Transform {
 
         public static pointToLocalFrame (position: Vec3, quaternion: Quaternion, worldPoint: Vec3, result?: Vec3): Vec3;
         public static pointToWorldFrame (position: Vec3, quaternion: Quaternion, localPoint: Vec3, result?: Vec3): Vec3;
@@ -402,7 +402,7 @@ declare namespace CANNON {
 
     }
 
-    export class Vec3 {
+    /*export*/ class Vec3 {
 
         public static ZERO: Vec3;
 
@@ -440,7 +440,7 @@ declare namespace CANNON {
 
     }
 
-    export interface IBodyOptions {
+    /*export*/ interface IBodyOptions {
         position?: Vec3;
         velocity?: Vec3;
         angularVelocity?: Vec3;
@@ -460,7 +460,7 @@ declare namespace CANNON {
         shape?: Shape;
     }
 
-    export class Body extends EventTarget {
+    /*export*/ class Body extends EventTarget {
 
         public static DYNAMIC: number;
         public static STATIC: number;
@@ -547,7 +547,7 @@ declare namespace CANNON {
 
     }
 
-    export interface IRaycastVehicleOptions {
+    /*export*/ interface IRaycastVehicleOptions {
 
         chassisBody?: Body;
         indexRightAxis?: number;
@@ -556,7 +556,7 @@ declare namespace CANNON {
 
     }
 
-    export interface IWheelInfoOptions {
+    /*export*/ interface IWheelInfoOptions {
 
         chassisConnectionPointLocal?: Vec3;
         chassisConnectionPointWorld?: Vec3;
@@ -593,7 +593,7 @@ declare namespace CANNON {
 
     }
 
-    export class WheelInfo {
+    /*export*/ class WheelInfo {
 
         public maxSuspensionTravbel: number;
         public customSlidingRotationalSpeed: number;
@@ -635,7 +635,7 @@ declare namespace CANNON {
 
     }
 
-    export class RaycastVehicle {
+    /*export*/ class RaycastVehicle {
 
         public chassisBody: Body;
         public wheelInfos: IWheelInfoOptions[];
@@ -660,13 +660,13 @@ declare namespace CANNON {
 
     }
 
-    export interface IRigidVehicleOptions {
+    /*export*/ interface IRigidVehicleOptions {
 
         chassisBody: Body;
 
     }
 
-    export class RigidVehicle {
+    /*export*/ class RigidVehicle {
 
         public wheelBodies: Body[];
         public coordinateSystem: Vec3;
@@ -689,7 +689,7 @@ declare namespace CANNON {
 
     }
 
-    export class SPHSystem {
+    /*export*/ class SPHSystem {
 
         public particles: Particle[];
         public density: number;
@@ -711,7 +711,7 @@ declare namespace CANNON {
 
     }
 
-    export interface ISpringOptions {
+    /*export*/ interface ISpringOptions {
 
         restLength?: number;
         stiffness?: number;
@@ -723,7 +723,7 @@ declare namespace CANNON {
 
     }
 
-    export class Spring {
+    /*export*/ class Spring {
 
         public restLength: number;
         public stffness: number;
@@ -743,7 +743,7 @@ declare namespace CANNON {
 
     }
 
-    export class Box extends Shape {
+    /*export*/ class Box extends Shape {
 
         public static calculateIntertia (halfExtents: Vec3, mass: number, target: Vec3): void;
 
@@ -763,7 +763,7 @@ declare namespace CANNON {
 
     }
 
-    export class ConvexPolyhedron extends Shape {
+    /*export*/ class ConvexPolyhedron extends Shape {
 
         public static computeNormal (va: Vec3, vb: Vec3, vc: Vec3, target: Vec3): void;
         public static project (hull: ConvexPolyhedron, axis: Vec3, pos: Vec3, quat: Quaternion, result: number[]): void;
@@ -796,13 +796,13 @@ declare namespace CANNON {
 
     }
 
-    export class Cylinder extends Shape {
+    /*export*/ class Cylinder extends Shape {
 
         constructor (radiusTop: number, radiusBottom: number, height: number, numSegments: number);
 
     }
 
-    export interface IHightfield {
+    /*export*/ interface IHightfield {
 
         minValue?: number;
         maxValue?: number;
@@ -810,7 +810,7 @@ declare namespace CANNON {
 
     }
 
-    export class Heightfield extends Shape {
+    /*export*/ class Heightfield extends Shape {
 
         public data: number[][];
         public maxValue: number;
@@ -833,11 +833,11 @@ declare namespace CANNON {
 
     }
 
-    export class Particle extends Shape {
+    /*export*/ class Particle extends Shape {
 
     }
 
-    export class Plane extends Shape {
+    /*export*/ class Plane extends Shape {
 
         public worldNormal: Vec3;
         public worldNormalNeedsUpdate: boolean;
@@ -848,7 +848,7 @@ declare namespace CANNON {
 
     }
 
-    export class Shape extends EventTarget {
+    /*export*/ class Shape extends EventTarget {
 
         public static types: {
 
@@ -876,7 +876,7 @@ declare namespace CANNON {
 
     }
 
-    export class Sphere extends Shape {
+    /*export*/ class Sphere extends Shape {
 
         public radius: number;
 
@@ -884,7 +884,7 @@ declare namespace CANNON {
 
     }
 
-    export class Trimesh extends Shape {
+    /*export*/ class Trimesh extends Shape {
 
         /**
          * @property vertices
@@ -1083,7 +1083,7 @@ declare namespace CANNON {
         public static createTorus (radius: number, tube: number, radialSegments: number, tubularSegments: number, arc: number): Trimesh;
     }
 
-    export class GSSolver extends Solver {
+    /*export*/ class GSSolver extends Solver {
 
         public iterations: number;
         public tolerance: number;
@@ -1092,7 +1092,7 @@ declare namespace CANNON {
 
     }
 
-    export class Solver {
+    /*export*/ class Solver {
         public iterations: number;
         public equations: Equation[];
 
@@ -1103,7 +1103,7 @@ declare namespace CANNON {
 
     }
 
-    export class SplitSolver extends Solver {
+    /*export*/ class SplitSolver extends Solver {
 
         public subsolver: Solver;
 
@@ -1113,7 +1113,7 @@ declare namespace CANNON {
 
     }
 
-    export class EventTarget {
+    /*export*/ class EventTarget {
 
         public addEventListener (type: string, listener: Function): EventTarget;
         public hasEventListener (type: string, listener: Function): boolean;
@@ -1122,7 +1122,7 @@ declare namespace CANNON {
 
     }
 
-    export class Pool {
+    /*export*/ class Pool {
 
         public objects: any[];
         public type: any[];
@@ -1133,7 +1133,7 @@ declare namespace CANNON {
 
     }
 
-    export class TupleDictionary {
+    /*export*/ class TupleDictionary {
 
         public data: {
             keys: any[];
@@ -1145,13 +1145,13 @@ declare namespace CANNON {
 
     }
 
-    export class Utils {
+    /*export*/ class Utils {
 
         public static defaults (options?: any, defaults?: any): any;
 
     }
 
-    export class Vec3Pool extends Pool {
+    /*export*/ class Vec3Pool extends Pool {
 
         public type: any;
 
@@ -1159,14 +1159,14 @@ declare namespace CANNON {
 
     }
 
-    export class NarrowPhase {
+    /*export*/ class NarrowPhase {
 
         public contactPointPool: Pool[];
         public v3pool: Vec3Pool;
 
     }
 
-    export class World extends EventTarget {
+    /*export*/ class World extends EventTarget {
         public iterations: number;
         public dt: number;
         public allowSleep: boolean;
@@ -1214,16 +1214,28 @@ declare namespace CANNON {
         public addMaterial (m: Material): void;
         public addContactMaterial (cmat: ContactMaterial): void;
         public step (dy: number, timeSinceLastCalled?: number, maxSubSteps?: number): void;
-
+        
+        /** raycast */
+        public raycastAny (from: Vec3, to: Vec3, options: IRaycastOptions, result: RaycastResult): boolean;
+        public raycastClosest (from: Vec3, to: Vec3, options: IRaycastOptions, result: RaycastResult): boolean;
+        public raycastAll (from: Vec3, to: Vec3, options: IRaycastOptions, callback: (result: RaycastResult) => {}): boolean;
+        // public raycastCollider()
     }
 
-    export interface IEvent {
+    /*export*/ interface IRaycastOptions {
+        mask: ?number,
+        group: ?number;
+        skipBackFaces: ?boolean;
+        checkCollisionResponse: ?boolean;
+    }
+
+    /*export*/ interface IEvent {
         target: any;
         type: string;
 
     }
 
-    export interface ITriggeredEvent extends IEvent {
+    /*export*/ interface ITriggeredEvent extends IEvent {
         event: 'onTriggerEnter' | 'onTriggerStay' | 'onTriggerExit';
         selfBody: Body;
         otherBody: Body;
@@ -1231,13 +1243,13 @@ declare namespace CANNON {
         otherShape: Shape;
     }
 
-    export interface IBodyEvent extends IEvent {
+    /*export*/ interface IBodyEvent extends IEvent {
 
         body: Body;
 
     }
 
-    export interface ICollisionEvent extends IBodyEvent {
+    /*export*/ interface ICollisionEvent extends IBodyEvent {
         event: 'onCollisionEnter' | 'onCollisionStay' | 'onCollisionExit';
         selfShape: Shape;
         otherShape: Shape;
