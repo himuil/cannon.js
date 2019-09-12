@@ -1214,7 +1214,7 @@ declare namespace CANNON {
         public addMaterial (m: Material): void;
         public addContactMaterial (cmat: ContactMaterial): void;
         public step (dy: number, timeSinceLastCalled?: number, maxSubSteps?: number): void;
-        
+
         /** raycast */
         public raycastAny (from: Vec3, to: Vec3, options: IRaycastOptions, result: RaycastResult): boolean;
         public raycastClosest (from: Vec3, to: Vec3, options: IRaycastOptions, result: RaycastResult): boolean;
@@ -1223,10 +1223,10 @@ declare namespace CANNON {
     }
 
     /*export*/ interface IRaycastOptions {
-        mask: ?number,
-        group: ?number;
-        skipBackFaces: ?boolean;
-        checkCollisionResponse: ?boolean;
+        collisionFilterMask?: number,
+        collisionFilterGroup?: number;
+        skipBackFaces?: boolean;
+        checkCollisionResponse?: boolean;
     }
 
     /*export*/ interface IEvent {
