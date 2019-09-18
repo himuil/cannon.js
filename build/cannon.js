@@ -1,4 +1,4 @@
-// Wed, 18 Sep 2019 12:42:49 GMT
+// Wed, 18 Sep 2019 13:16:49 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -41,7 +41,7 @@ module.exports={
     "build":"grunt && npm run preprocess && grunt addLicense && grunt addDate",
     "preprocess":"node node_modules/uglify-js/bin/uglifyjs build/cannon.js -o build/cannon.min.js -d doProfiling=false,DEBUG=false -c -m"
   },
-  "main": "./build/cannon.js",
+  "main": "./build/cannon.min.js",
   "engines": {
     "node": "*"
   },
