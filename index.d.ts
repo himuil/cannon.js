@@ -917,7 +917,7 @@ declare namespace CANNON {
          * References to vertex pairs, making up all unique edges in the trimesh.
          * @property {array} edges
          */
-        public edges = null;
+        public edges: [];
 
         /**
          * Local scaling of the mesh. Use .setScale() to set it.
@@ -929,11 +929,11 @@ declare namespace CANNON {
          * The indexed triangles. Use .updateTree() to update it.
          * @property {Octree} tree
          */
-        public tree: Octree;
+        public tree: any;
 
         public updateTree (): void;
 
-        public getTrianglesInAABB (): array;
+        public getTrianglesInAABB (): [];
 
         public setScale (scale: Vec3): void;
 
@@ -1035,12 +1035,6 @@ declare namespace CANNON {
          * @method updateAABB
          */
         public updateAABB (): void;
-
-        /**
-         * Will update the .boundingSphereRadius property
-         * @method updateBoundingSphereRadius
-         */
-        public updateBoundingSphereRadius (): void;
 
         /**
          * @method calculateWorldAABB
