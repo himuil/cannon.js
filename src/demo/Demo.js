@@ -850,8 +850,8 @@ CANNON.Demo = function(options){
     }
 
 
-    function start(){
-        buildScene(0);
+    function start(index = 0){
+        buildScene(index);
     }
 
     function buildScene(n){

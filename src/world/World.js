@@ -157,8 +157,6 @@ function World (options) {
 
     this.triggerMatrix = new ObjectCollisionMatrix();
 
-    this.bodyOverlapKeeper = new OverlapKeeper();
-
     this.shapeOverlapKeeper = new OverlapKeeper();
 
     this.shapeOverlapKeeperExit = new OverlapKeeper();
@@ -275,7 +273,6 @@ World.prototype.numObjects = function () {
  * @method collisionMatrixTick
  */
 World.prototype.collisionMatrixTick = function () {
-    // this.bodyOverlapKeeper.tick();
     // this.shapeOverlapKeeper.tick();
     // this.shapeOverlapKeeperExit.tick();
 };
@@ -516,7 +513,7 @@ if (DEBUG) {
 World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
     maxSubSteps = maxSubSteps || 10;
     timeSinceLastCalled = timeSinceLastCalled || 0;
-
+    World_step_oldContacts = this.contacts.slice();
     if (timeSinceLastCalled === 0) { // Fixed, simple stepping
 
         this.internalStep(dt);
@@ -631,8 +628,6 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
         sj.body.dispatchEvent(World_step_collideEvent);
-
-        this.bodyOverlapKeeper.set(bi.id, bj.id);
     }
     var oldcontacts = World_step_oldContacts;
     for (i = oldcontacts.length; i--;) {
@@ -787,17 +782,11 @@ World.prototype.internalStep = function (dt) {
         }
     }
 
-    // this.collisionMatrixTick();
     this.shapeOverlapKeeperExit.tick();
 
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
-    var oldcontacts = World_step_oldContacts;
-    var NoldContacts = contacts.length;
 
-    for (i = 0; i !== NoldContacts; i++) {
-        oldcontacts.push(contacts[i]);
-    }
     contacts.length = 0;
 
     // Transfer FrictionEquation from current list to the pool for reuse
@@ -812,7 +801,7 @@ World.prototype.internalStep = function (dt) {
         p2,
         this,
         contacts,
-        oldcontacts, // To be reused
+        null,
         this.frictionEquations,
         frictionEquationPool
     );

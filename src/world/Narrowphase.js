@@ -214,7 +214,6 @@ var tmpQuat2 = new Quaternion();
  */
 Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts, frictionResult, frictionPool){
     // Save old contact objects
-    this.contactPointPool = oldcontacts;
     this.frictionEquationPool = frictionPool;
     this.result = result;
     this.frictionResult = frictionResult;
@@ -293,7 +292,6 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                         // Register overlap
                         world.shapeOverlapKeeper.set(si.id, sj.id);
                         world.shapeOverlapKeeperExit.set(si.id, sj.id);
-                        world.bodyOverlapKeeper.set(bi.id, bj.id);
                     }
                 }
             }

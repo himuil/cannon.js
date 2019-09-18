@@ -1,4 +1,4 @@
-// Wed, 18 Sep 2019 08:22:25 GMT
+// Wed, 18 Sep 2019 12:42:49 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -41,7 +41,7 @@ module.exports={
     "build":"grunt && npm run preprocess && grunt addLicense && grunt addDate",
     "preprocess":"node node_modules/uglify-js/bin/uglifyjs build/cannon.js -o build/cannon.min.js -d doProfiling=false,DEBUG=false -c -m"
   },
-  "main": "./build/cannon.min.js",
+  "main": "./build/cannon.js",
   "engines": {
     "node": "*"
   },
@@ -11960,7 +11960,6 @@ var tmpQuat2 = new Quaternion();
  */
 Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts, frictionResult, frictionPool){
     // Save old contact objects
-    this.contactPointPool = oldcontacts;
     this.frictionEquationPool = frictionPool;
     this.result = result;
     this.frictionResult = frictionResult;
@@ -12039,7 +12038,6 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                         // Register overlap
                         world.shapeOverlapKeeper.set(si.id, sj.id);
                         world.shapeOverlapKeeperExit.set(si.id, sj.id);
-                        world.bodyOverlapKeeper.set(bi.id, bj.id);
                     }
                 }
             }
@@ -13778,8 +13776,6 @@ function World (options) {
 
     this.triggerMatrix = new ObjectCollisionMatrix();
 
-    this.bodyOverlapKeeper = new OverlapKeeper();
-
     this.shapeOverlapKeeper = new OverlapKeeper();
 
     this.shapeOverlapKeeperExit = new OverlapKeeper();
@@ -13896,7 +13892,6 @@ World.prototype.numObjects = function () {
  * @method collisionMatrixTick
  */
 World.prototype.collisionMatrixTick = function () {
-    // this.bodyOverlapKeeper.tick();
     // this.shapeOverlapKeeper.tick();
     // this.shapeOverlapKeeperExit.tick();
 };
@@ -14137,7 +14132,7 @@ if (DEBUG) {
 World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
     maxSubSteps = maxSubSteps || 10;
     timeSinceLastCalled = timeSinceLastCalled || 0;
-
+    World_step_oldContacts = this.contacts.slice();
     if (timeSinceLastCalled === 0) { // Fixed, simple stepping
 
         this.internalStep(dt);
@@ -14252,8 +14247,6 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
         sj.body.dispatchEvent(World_step_collideEvent);
-
-        this.bodyOverlapKeeper.set(bi.id, bj.id);
     }
     var oldcontacts = World_step_oldContacts;
     for (i = oldcontacts.length; i--;) {
@@ -14408,17 +14401,11 @@ World.prototype.internalStep = function (dt) {
         }
     }
 
-    // this.collisionMatrixTick();
     this.shapeOverlapKeeperExit.tick();
 
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
-    var oldcontacts = World_step_oldContacts;
-    var NoldContacts = contacts.length;
 
-    for (i = 0; i !== NoldContacts; i++) {
-        oldcontacts.push(contacts[i]);
-    }
     contacts.length = 0;
 
     // Transfer FrictionEquation from current list to the pool for reuse
@@ -14433,7 +14420,7 @@ World.prototype.internalStep = function (dt) {
         p2,
         this,
         contacts,
-        oldcontacts, // To be reused
+        null,
         this.frictionEquations,
         frictionEquationPool
     );
