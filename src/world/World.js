@@ -558,126 +558,13 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         item.push(c);
     }
 
-    // trigger 
-    this.emitTriggeredEvents();
+    if (DEBUG) {
+        // trigger 
+        this.emitTriggeredEvents();
 
-    // collision
-    var key;
-    var data;
-    // is collision enter or stay
-    i = this.contactsDic.getLength();
-    while (i--) {
-        key = this.contactsDic.getKeyByIndex(i);
-        data = this.contactsDic.getDataByKey(key);
-
-        if (data == null)
-            continue;
-
-        var bi = data[0].bi;
-        var bj = data[0].bj;
-        var si = data[0].si;
-        var sj = data[0].sj;
-
-        if (bi.allowSleep &&
-            bi.type === Body.DYNAMIC &&
-            bi.sleepState === Body.SLEEPING &&
-            bj.sleepState === Body.AWAKE &&
-            bj.type !== Body.STATIC
-        ) {
-            var speedSquaredB = bj.velocity.norm2() + bj.angularVelocity.norm2();
-            var speedLimitSquaredB = Math.pow(bj.sleepSpeedLimit, 2);
-            if (speedSquaredB >= speedLimitSquaredB * 2) {
-                // bi._wakeUpAfterNarrowphase = true;
-                bi.wakeUp();
-            }
-        }
-
-        if (bj.allowSleep &&
-            bj.type === Body.DYNAMIC &&
-            bj.sleepState === Body.SLEEPING &&
-            bi.sleepState === Body.AWAKE &&
-            bi.type !== Body.STATIC
-        ) {
-            var speedSquaredA = bi.velocity.norm2() + bi.angularVelocity.norm2();
-            var speedLimitSquaredA = Math.pow(bi.sleepSpeedLimit, 2);
-            if (speedSquaredA >= speedLimitSquaredA * 2) {
-                // bj._wakeUpAfterNarrowphase = true;
-                bj.wakeUp();
-            }
-        }
-
-        // Now we know that i and j are in contact. Set collision matrix state		
-        if (this.collisionMatrix.get(bi, bj)) {
-            // collision stay
-            World_step_collideEvent.event = 'onCollisionStay';
-
-        } else {
-            this.collisionMatrix.set(bi, bj, true);
-            // collision enter
-            World_step_collideEvent.event = 'onCollisionEnter';
-        }
-
-        World_step_collideEvent.contacts = data;
-
-        World_step_collideEvent.body = sj.body;
-        World_step_collideEvent.selfShape = si;
-        World_step_collideEvent.otherShape = sj;
-        si.body.dispatchEvent(World_step_collideEvent);
-
-        World_step_collideEvent.body = si.body;
-        World_step_collideEvent.selfShape = sj;
-        World_step_collideEvent.otherShape = si;
-        sj.body.dispatchEvent(World_step_collideEvent);
+        // collision
+        this.emitCollisionEvents();
     }
-    var oldcontacts = World_step_oldContacts;
-    for (i = oldcontacts.length; i--;) {
-        // Current contact
-        var c = oldcontacts[i];
-
-        // Get current collision indeces
-        var si = c.si;
-        var sj = c.sj;
-        if (this.oldContactsDic.get(si.id, sj.id) == null) {
-            this.oldContactsDic.set(si.id, sj.id, c);
-        }
-    }
-
-    // is collision exit
-    i = this.oldContactsDic.getLength();
-    while (i--) {
-        key = this.oldContactsDic.getKeyByIndex(i);
-        if (this.contactsDic.getDataByKey(key) == null) {
-            data = this.oldContactsDic.getDataByKey(key);
-            var bi = data.bi;
-            var bj = data.bj;
-            var si = data.si;
-            var sj = data.sj;
-            if (this.collisionMatrix.get(bi, bj)) {
-                if (!bi.isSleeping() || !bj.isSleeping()) {
-                    this.collisionMatrix.set(bi, bj, false);
-                    // collision exit
-                    World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = sj.body;
-                    World_step_collideEvent.selfShape = si;
-                    World_step_collideEvent.otherShape = sj;
-                    World_step_collideEvent.contacts.length = 0;
-                    World_step_collideEvent.contacts.push(data);
-                    si.body.dispatchEvent(World_step_collideEvent);
-
-                    World_step_collideEvent.body = si.body;
-                    World_step_collideEvent.selfShape = sj;
-                    World_step_collideEvent.otherShape = si;
-                    sj.body.dispatchEvent(World_step_collideEvent);
-                } else {
-                    // not exit, due to sleeping
-                }
-            }
-        }
-    }
-
-    this.contactsDic.reset();
-    this.oldContactsDic.reset();
-    this.shapeOverlapKeeper.reset();
 };
 
 /**
@@ -986,6 +873,125 @@ World.prototype.emitTriggeredEvents = function () {
         triggeredEvent.otherBody = shapeA.body;
         shapeB.dispatchEvent(triggeredEvent);
     }
+};
+
+World.prototype.emitCollisionEvents = function () {
+    var key;
+    var data;
+    // is collision enter or stay
+    var i = this.contactsDic.getLength();
+    while (i--) {
+        key = this.contactsDic.getKeyByIndex(i);
+        data = this.contactsDic.getDataByKey(key);
+
+        if (data == null)
+            continue;
+
+        var bi = data[0].bi;
+        var bj = data[0].bj;
+        var si = data[0].si;
+        var sj = data[0].sj;
+
+        if (bi.allowSleep &&
+            bi.type === Body.DYNAMIC &&
+            bi.sleepState === Body.SLEEPING &&
+            bj.sleepState === Body.AWAKE &&
+            bj.type !== Body.STATIC
+        ) {
+            var speedSquaredB = bj.velocity.norm2() + bj.angularVelocity.norm2();
+            var speedLimitSquaredB = Math.pow(bj.sleepSpeedLimit, 2);
+            if (speedSquaredB >= speedLimitSquaredB * 2) {
+                // bi._wakeUpAfterNarrowphase = true;
+                bi.wakeUp();
+            }
+        }
+
+        if (bj.allowSleep &&
+            bj.type === Body.DYNAMIC &&
+            bj.sleepState === Body.SLEEPING &&
+            bi.sleepState === Body.AWAKE &&
+            bi.type !== Body.STATIC
+        ) {
+            var speedSquaredA = bi.velocity.norm2() + bi.angularVelocity.norm2();
+            var speedLimitSquaredA = Math.pow(bi.sleepSpeedLimit, 2);
+            if (speedSquaredA >= speedLimitSquaredA * 2) {
+                // bj._wakeUpAfterNarrowphase = true;
+                bj.wakeUp();
+            }
+        }
+
+        // Now we know that i and j are in contact. Set collision matrix state		
+        if (this.collisionMatrix.get(bi, bj)) {
+            // collision stay
+            World_step_collideEvent.event = 'onCollisionStay';
+
+        } else {
+            this.collisionMatrix.set(bi, bj, true);
+            // collision enter
+            World_step_collideEvent.event = 'onCollisionEnter';
+        }
+
+        World_step_collideEvent.contacts = data;
+
+        World_step_collideEvent.body = sj.body;
+        World_step_collideEvent.selfShape = si;
+        World_step_collideEvent.otherShape = sj;
+        si.body.dispatchEvent(World_step_collideEvent);
+
+        World_step_collideEvent.body = si.body;
+        World_step_collideEvent.selfShape = sj;
+        World_step_collideEvent.otherShape = si;
+        sj.body.dispatchEvent(World_step_collideEvent);
+    }
+    var oldcontacts = World_step_oldContacts;
+    for (i = oldcontacts.length; i--;) {
+        // Current contact
+        var c = oldcontacts[i];
+
+        // Get current collision indeces
+        var si = c.si;
+        var sj = c.sj;
+        if (this.oldContactsDic.get(si.id, sj.id) == null) {
+            this.oldContactsDic.set(si.id, sj.id, c);
+        }
+    }
+
+    // is collision exit
+    i = this.oldContactsDic.getLength();
+    while (i--) {
+        key = this.oldContactsDic.getKeyByIndex(i);
+        if (this.contactsDic.getDataByKey(key) == null) {
+            data = this.oldContactsDic.getDataByKey(key);
+            var bi = data.bi;
+            var bj = data.bj;
+            var si = data.si;
+            var sj = data.sj;
+            if (this.collisionMatrix.get(bi, bj)) {
+                if (!bi.isSleeping() || !bj.isSleeping()) {
+                    this.collisionMatrix.set(bi, bj, false);
+                    // collision exit
+                    World_step_collideEvent.event = 'onCollisionExit';
+                    World_step_collideEvent.body = sj.body;
+                    World_step_collideEvent.selfShape = si;
+                    World_step_collideEvent.otherShape = sj;
+                    World_step_collideEvent.contacts.length = 0;
+                    World_step_collideEvent.contacts.push(data);
+                    si.body.dispatchEvent(World_step_collideEvent);
+
+                    World_step_collideEvent.body = si.body;
+                    World_step_collideEvent.selfShape = sj;
+                    World_step_collideEvent.otherShape = si;
+                    sj.body.dispatchEvent(World_step_collideEvent);
+                } else {
+                    // not exit, due to sleeping
+                }
+            }
+        }
+    }
+
+    this.contactsDic.reset();
+    this.oldContactsDic.reset();
+    this.shapeOverlapKeeper.reset();
 };
 
 /**

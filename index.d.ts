@@ -1214,6 +1214,10 @@ declare namespace CANNON {
         public raycastClosest (from: Vec3, to: Vec3, options: IRaycastOptions, result: RaycastResult): boolean;
         public raycastAll (from: Vec3, to: Vec3, options: IRaycastOptions, callback: (result: RaycastResult) => {}): boolean;
         // public raycastCollider()
+
+        /** events */
+        public emitTriggeredEvents (): void;
+        public emitCollisionEvents (): void;
     }
 
     /*export*/ interface IRaycastOptions {
