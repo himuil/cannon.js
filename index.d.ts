@@ -479,12 +479,20 @@ declare namespace CANNON {
         public collisionFilterGroup: number;
         public collisionFilterMask: number;
         public collisionResponse: boolean;
+
         public position: Vec3;
         public previousPosition: Vec3;
         public initPosition: Vec3;
+        public interpolatedPosition: Vec3;
+
         public velocity: Vec3;
         public initVelocity: Vec3;
+        public angularVelocity: Vec3;
+        public initAngularVelocity: Vec3;
+
         public force: Vec3;
+        public torque: Vec3;
+
         public mass: number;
         public invMass: number;
         public material: Material;
@@ -495,16 +503,16 @@ declare namespace CANNON {
         public sleepSpeedLimit: number;
         public sleepTimeLimit: number;
         public timeLastSleepy: number;
-        public torque: Vec3;
+
         public quaternion: Quaternion;
+        public previousQuaternion: Quaternion;
         public initQuaternion: Quaternion;
-        public angularVelocity: Vec3;
-        public initAngularVelocity: Vec3;
-        public interpolatedPosition: Vec3;
         public interpolatedQuaternion: Quaternion;
+
         public shapes: Shape[];
         public shapeOffsets: any[];
         public shapeOrientations: any[];
+
         public inertia: Vec3;
         public invInertia: Vec3;
         public invInertiaWorld: Mat3;
