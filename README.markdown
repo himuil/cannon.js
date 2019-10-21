@@ -18,7 +18,8 @@ Just include [cannon.js](https://github.com/schteppe/cannon.js/releases/download
 
 Install the cannon package via NPM for cocos-creator 3d:
 
-usage : `npm install github:cocos-creator/cannon.js#cocos-master --save-dev`。
+usage : `npm install @cocos/cannon`。
+<!-- usage : `npm install github:cocos-creator/cannon.js#cocos-master --save-dev`。 -->
 
 ### Example
 

@@ -1,12 +1,13 @@
 {
-  "name": "cannon",
+  "name": "@cocos/cannon",
   "version": "1.0.1",
   "description": "A lightweight 3D physics engine written in JavaScript.",
   "homepage": "https://github.com/cocos-creator/cannon.js",
-  "author": "JayceLai",
+  "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se), JayceLai",
   "keywords": [
-    "cannon.js",
     "cannon",
+    "cocos",
+    "creator",
     "physics",
     "engine",
     "3d"
