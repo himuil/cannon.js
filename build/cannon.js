@@ -1,4 +1,4 @@
-// Thu, 19 Sep 2019 02:13:42 GMT
+// Fri, 25 Oct 2019 06:59:34 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -14261,6 +14261,9 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         }
     }
 
+    this.shapeOverlapKeeper.reset();
+    this.shapeOverlapKeeperExit.tick();
+
     // is collision exit
     i = this.oldContactsDic.getLength();
     while (i--) {
@@ -14296,7 +14299,6 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
 
     this.contactsDic.reset();
     this.oldContactsDic.reset();
-    this.shapeOverlapKeeper.reset();
 };
 
 /**
@@ -14400,8 +14402,6 @@ World.prototype.internalStep = function (dt) {
             }
         }
     }
-
-    this.shapeOverlapKeeperExit.tick();
 
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }

@@ -642,6 +642,9 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         }
     }
 
+    this.shapeOverlapKeeper.reset();
+    this.shapeOverlapKeeperExit.tick();
+
     // is collision exit
     i = this.oldContactsDic.getLength();
     while (i--) {
@@ -677,7 +680,6 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
 
     this.contactsDic.reset();
     this.oldContactsDic.reset();
-    this.shapeOverlapKeeper.reset();
 };
 
 /**
@@ -781,8 +783,6 @@ World.prototype.internalStep = function (dt) {
             }
         }
     }
-
-    this.shapeOverlapKeeperExit.tick();
 
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
