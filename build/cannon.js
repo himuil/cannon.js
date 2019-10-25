@@ -1,4 +1,4 @@
-// Mon, 14 Oct 2019 09:26:57 GMT
+// Fri, 25 Oct 2019 07:49:07 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -25,14 +25,15 @@
 
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CANNON=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports={
-  "name": "cannon",
-  "version": "1.0.1",
+  "name": "@cocos/cannon",
+  "version": "1.0.2",
   "description": "A lightweight 3D physics engine written in JavaScript.",
   "homepage": "https://github.com/cocos-creator/cannon.js",
-  "author": "JayceLai",
+  "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se), JayceLai",
   "keywords": [
-    "cannon.js",
     "cannon",
+    "cocos",
+    "creator",
     "physics",
     "engine",
     "3d"
@@ -14288,8 +14289,6 @@ World.prototype.internalStep = function (dt) {
         }
     }
 
-    this.shapeOverlapKeeperExit.tick();
-
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
 
@@ -14492,6 +14491,9 @@ World.prototype.emitTriggeredEvents = function () {
         triggeredEvent.otherBody = shapeA.body;
         shapeB.dispatchEvent(triggeredEvent);
     }
+
+    this.shapeOverlapKeeper.reset();
+    this.shapeOverlapKeeperExit.tick();
 };
 
 World.prototype.emitCollisionEvents = function () {
@@ -14610,7 +14612,6 @@ World.prototype.emitCollisionEvents = function () {
 
     this.contactsDic.reset();
     this.oldContactsDic.reset();
-    this.shapeOverlapKeeper.reset();
 };
 
 /**
