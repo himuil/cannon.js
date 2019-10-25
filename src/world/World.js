@@ -669,8 +669,6 @@ World.prototype.internalStep = function (dt) {
         }
     }
 
-    this.shapeOverlapKeeperExit.tick();
-
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
 
@@ -873,6 +871,9 @@ World.prototype.emitTriggeredEvents = function () {
         triggeredEvent.otherBody = shapeA.body;
         shapeB.dispatchEvent(triggeredEvent);
     }
+
+    this.shapeOverlapKeeper.reset();
+    this.shapeOverlapKeeperExit.tick();
 };
 
 World.prototype.emitCollisionEvents = function () {
@@ -991,7 +992,6 @@ World.prototype.emitCollisionEvents = function () {
 
     this.contactsDic.reset();
     this.oldContactsDic.reset();
-    this.shapeOverlapKeeper.reset();
 };
 
 /**
