@@ -1,4 +1,4 @@
-// Sat, 02 Nov 2019 19:51:20 GMT
+// Sat, 02 Nov 2019 21:57:08 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -333,7 +333,7 @@ AABB.prototype.getCorners = function(a, b, c, d, e, f, g, h){
     b.set( u.x, l.y, l.z );
     c.set( u.x, u.y, l.z );
     d.set( l.x, u.y, u.z );
-    e.set( u.x, l.y, l.z );
+    e.set( u.x, l.y, u.z );
     f.set( l.x, u.y, l.z );
     g.set( l.x, l.y, u.z );
     h.copy(u);
@@ -452,6 +452,7 @@ AABB.prototype.overlapsRay = function(ray){
 
     return true;
 };
+
 },{"../math/Vec3":31,"../utils/Utils":54}],4:[function(_dereq_,module,exports){
 module.exports = ArrayCollisionMatrix;
 
@@ -9055,19 +9056,25 @@ ConvexPolyhedron.prototype.calculateWorldAABB = function(pos,quat,min,max){
         var v = tempWorldVertex;
         if     (v.x < minx || minx===undefined){
             minx = v.x;
-        } else if(v.x > maxx || maxx===undefined){
+        } 
+        
+        if(v.x > maxx || maxx===undefined){
             maxx = v.x;
         }
 
         if     (v.y < miny || miny===undefined){
             miny = v.y;
-        } else if(v.y > maxy || maxy===undefined){
+        } 
+        
+        if(v.y > maxy || maxy===undefined){
             maxy = v.y;
         }
 
         if     (v.z < minz || minz===undefined){
             minz = v.z;
-        } else if(v.z > maxz || maxz===undefined){
+        }  
+        
+        if(v.z > maxz || maxz===undefined){
             maxz = v.z;
         }
     }
@@ -11544,15 +11551,11 @@ OctreeNode.prototype.rayQuery = function(ray, treeTransform, result) {
  * @method removeEmptyNodes
  */
 OctreeNode.prototype.removeEmptyNodes = function() {
-    var queue = [this];
-    while (queue.length) {
-        var node = queue.pop();
-        for (var i = node.children.length - 1; i >= 0; i--) {
-            if(!node.children[i].data.length){
-                node.children.splice(i, 1);
-            }
+    for (var i = this.children.length - 1; i >= 0; i--) {
+        this.children[i].removeEmptyNodes();
+        if(!this.children[i].children.length && !this.children[i].data.length){
+            this.children.splice(i, 1);
         }
-        Array.prototype.push.apply(queue, node.children);
     }
 };
 
@@ -13577,7 +13580,7 @@ Narrowphase.prototype.sphereHeightfield = function (
         iMaxY = Math.ceil((localSpherePos.y + radius) / w) + 1;
 
     // Bail out if we are out of the terrain
-    if(iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMaxY > data[0].length){
+    if(iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length){
         return;
     }
 
@@ -14582,17 +14585,22 @@ World.prototype.emitCollisionEvents = function () {
             World_step_collideEvent.event = 'onCollisionEnter';
         }
 
+        if (DEBUG){
+            World_step_collideEvent.bi = bi;    
+            World_step_collideEvent.contact = data[0];
+        }
+
         World_step_collideEvent.contacts = data;
 
-        World_step_collideEvent.body = sj.body;
+        World_step_collideEvent.body = bj;
         World_step_collideEvent.selfShape = si;
         World_step_collideEvent.otherShape = sj;
-        si.body.dispatchEvent(World_step_collideEvent);
+        bj.dispatchEvent(World_step_collideEvent);
 
-        World_step_collideEvent.body = si.body;
+        World_step_collideEvent.body = bj;
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
-        sj.body.dispatchEvent(World_step_collideEvent);
+        bj.dispatchEvent(World_step_collideEvent);
     }
     var oldcontacts = World_step_oldContacts;
     for (i = oldcontacts.length; i--;) {
@@ -14620,19 +14628,25 @@ World.prototype.emitCollisionEvents = function () {
             if (this.collisionMatrix.get(bi, bj)) {
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);
+
+                    if (DEBUG){
+                        World_step_collideEvent.bi = bi;    
+                        World_step_collideEvent.contact = data;
+                    }
+            
                     // collision exit
                     World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = sj.body;
+                    World_step_collideEvent.body = bj;
                     World_step_collideEvent.selfShape = si;
                     World_step_collideEvent.otherShape = sj;
                     World_step_collideEvent.contacts.length = 0;
                     World_step_collideEvent.contacts.push(data);
-                    si.body.dispatchEvent(World_step_collideEvent);
+                    bi.dispatchEvent(World_step_collideEvent);
 
-                    World_step_collideEvent.body = si.body;
+                    World_step_collideEvent.body = bi;
                     World_step_collideEvent.selfShape = sj;
                     World_step_collideEvent.otherShape = si;
-                    sj.body.dispatchEvent(World_step_collideEvent);
+                    bj.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
                 }

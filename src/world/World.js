@@ -932,17 +932,22 @@ World.prototype.emitCollisionEvents = function () {
             World_step_collideEvent.event = 'onCollisionEnter';
         }
 
+        if (DEBUG){
+            World_step_collideEvent.bi = bi;    
+            World_step_collideEvent.contact = data[0];
+        }
+
         World_step_collideEvent.contacts = data;
 
-        World_step_collideEvent.body = sj.body;
+        World_step_collideEvent.body = bj;
         World_step_collideEvent.selfShape = si;
         World_step_collideEvent.otherShape = sj;
-        si.body.dispatchEvent(World_step_collideEvent);
+        bj.dispatchEvent(World_step_collideEvent);
 
-        World_step_collideEvent.body = si.body;
+        World_step_collideEvent.body = bj;
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
-        sj.body.dispatchEvent(World_step_collideEvent);
+        bj.dispatchEvent(World_step_collideEvent);
     }
     var oldcontacts = World_step_oldContacts;
     for (i = oldcontacts.length; i--;) {
@@ -970,19 +975,25 @@ World.prototype.emitCollisionEvents = function () {
             if (this.collisionMatrix.get(bi, bj)) {
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.collisionMatrix.set(bi, bj, false);
+
+                    if (DEBUG){
+                        World_step_collideEvent.bi = bi;    
+                        World_step_collideEvent.contact = data;
+                    }
+            
                     // collision exit
                     World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = sj.body;
+                    World_step_collideEvent.body = bj;
                     World_step_collideEvent.selfShape = si;
                     World_step_collideEvent.otherShape = sj;
                     World_step_collideEvent.contacts.length = 0;
                     World_step_collideEvent.contacts.push(data);
-                    si.body.dispatchEvent(World_step_collideEvent);
+                    bi.dispatchEvent(World_step_collideEvent);
 
-                    World_step_collideEvent.body = si.body;
+                    World_step_collideEvent.body = bi;
                     World_step_collideEvent.selfShape = sj;
                     World_step_collideEvent.otherShape = si;
-                    sj.body.dispatchEvent(World_step_collideEvent);
+                    bj.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
                 }

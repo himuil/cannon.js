@@ -153,6 +153,9 @@ CANNON.Demo = function(options){
     // Create physics world
     var world = this.world = new CANNON.World();
     world.broadphase = new CANNON.NaiveBroadphase();
+    
+    var World_step_preStepEvent = {type:"preStep"};
+    var World_step_postStepEvent = {type:"postStep"};
 
     var renderModes = ["solid","wireframe"];
 
@@ -743,8 +746,24 @@ CANNON.Demo = function(options){
             resetCallTime = false;
         }
 
+        world.dispatchEvent(World_step_preStepEvent);
+        // Invoke pre-step callbacks
+        for(i=0; i!==N; i++){
+            var bi = world.bodies[i];
+            if(bi.preStep){
+                bi.preStep.call(bi);
+            }
+        }
         world.step(timeStep, timeSinceLastCall, settings.maxSubSteps);
-
+        world.dispatchEvent(World_step_postStepEvent);
+        // Invoke post-step callbacks
+        for(i=0; i!==N; i++){
+            var bi = world.bodies[i];
+            var postStep = bi.postStep;
+            if(postStep){
+                postStep.call(bi);
+            }
+        }
         lastCallTime = now;
     }
 
