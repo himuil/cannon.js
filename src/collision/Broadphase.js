@@ -55,8 +55,13 @@ Broadphase.prototype.collisionPairs = function(world,p1,p2){
 Broadphase.prototype.needBroadphaseCollision = function(bodyA,bodyB){
 
     // Check collision filter masks
-    if( (bodyA.collisionFilterGroup & bodyB.collisionFilterMask)===0 || (bodyB.collisionFilterGroup & bodyA.collisionFilterMask)===0){
+    if((bodyA.collisionFilterGroup & bodyB.collisionFilterMask)===0 || (bodyB.collisionFilterGroup & bodyA.collisionFilterMask)===0){
         return false;
+    }
+
+    // Check has trigger
+    if(bodyA.hasTrigger || bodyB.hasTrigger){
+        return true;
     }
 
     // Check types

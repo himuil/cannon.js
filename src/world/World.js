@@ -525,12 +525,12 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
 
         this.accumulator += timeSinceLastCalled;
         var substeps = 0;
-        while (this.accumulator >= dt && substeps < maxSubSteps) {
+        do {
             // Do fixed steps to catch up
             this.internalStep(dt);
             this.accumulator -= dt;
             substeps++;
-        }
+        } while (this.accumulator >= dt && substeps < maxSubSteps)
 
         var t = (this.accumulator % dt) / dt;
         for (var j = 0; j !== this.bodies.length; j++) {

@@ -1,4 +1,4 @@
-// Fri, 25 Oct 2019 07:49:07 GMT
+// Sat, 02 Nov 2019 19:51:20 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -583,8 +583,13 @@ Broadphase.prototype.collisionPairs = function(world,p1,p2){
 Broadphase.prototype.needBroadphaseCollision = function(bodyA,bodyB){
 
     // Check collision filter masks
-    if( (bodyA.collisionFilterGroup & bodyB.collisionFilterMask)===0 || (bodyB.collisionFilterGroup & bodyA.collisionFilterMask)===0){
+    if((bodyA.collisionFilterGroup & bodyB.collisionFilterMask)===0 || (bodyB.collisionFilterGroup & bodyA.collisionFilterMask)===0){
         return false;
+    }
+
+    // Check has trigger
+    if(bodyA.hasTrigger || bodyB.hasTrigger){
+        return true;
     }
 
     // Check types
@@ -5524,7 +5529,7 @@ function Body(options){
      * Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled.
      * @property {Number} collisionResponse
      */
-	this.collisionResponse = true;
+    this.collisionResponse = true;
 
     /**
      * World space position of the body.
@@ -5820,6 +5825,11 @@ function Body(options){
         this.addShape(options.shape);
     }
 
+    /**
+     * has trigger?
+     */
+    this.hasTrigger = true;
+
     this.updateMassProperties();
 }
 Body.prototype = new EventTarget();
@@ -6036,20 +6046,29 @@ var tmpQuat = new Quaternion();
  * @param {Quaternion} [_orientation]
  * @return {Body} The body object, for chainability.
  */
-Body.prototype.addShape = function(shape, _offset, _orientation){    
-    var idx = this.shapes.indexOf(shape);
-    if(idx !== -1){
-        return;
-    }
+Body.prototype.addShape = function(shape, _offset, _orientation){
 
-    var offset = new Vec3();
-    var orientation = new Quaternion();
+    var offset;
+    var orientation;
 
-    if(_offset){
-        offset.copy(_offset);
-    }
-    if(_orientation){
-        orientation.copy(_orientation);
+    if (DEBUG) {
+        offset = new Vec3();
+        orientation = new Quaternion();
+        if (_offset) {
+            offset.copy(_offset);
+        }
+        if (_orientation) {
+            orientation.copy(_orientation);
+        }
+    } else {
+        offset = _offset;
+        orientation = _orientation;
+        if (!offset) {
+            offset = new Vec3();
+        }
+        if (!orientation) {
+            orientation = new Quaternion();
+        }
     }
 
     World.idToShapeMap[shape.id] = shape;
@@ -6060,7 +6079,7 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
     this.updateBoundingRadius();
 
     this.aabbNeedsUpdate = true;
-
+    this.updateHasTrigger();
     shape.body = this;
     return this;
 };
@@ -6070,20 +6089,21 @@ Body.prototype.addShape = function(shape, _offset, _orientation){
  */
 Body.prototype.removeShape = function(shape){   
     var idx = this.shapes.indexOf(shape);
-    if(idx === -1){
+    if (idx === -1) {
         return;
     }
     // shape.body = null;  needed ?
     // delete World.idToShapeMap[shape.id];  needed ?
- 
+
     this.shapes.splice(idx, 1);
     this.shapeOffsets.splice(idx, 1);
     this.shapeOrientations.splice(idx, 1);
-        
+
     this.updateMassProperties();
     this.updateBoundingRadius();
-    
+
     this.aabbNeedsUpdate = true;
+    this.updateHasTrigger();
 }
 
 /**
@@ -6417,6 +6437,16 @@ Body.prototype.isSleepy = function(){
  */
 Body.prototype.isAwake = function(){
     return this.sleepState === Body.AWAKE;
+}
+
+/**
+ * Update hasTrigger
+ */
+Body.prototype.updateHasTrigger = function () {
+    for (var i = this.shapes.length; i--;) {
+        this.hasTrigger = !this.shapes[i].collisionResponse;
+        if (this.hasTrigger) break;
+    }
 }
 
 },{"../collision/AABB":3,"../material/Material":26,"../math/Mat3":28,"../math/Quaternion":29,"../math/Vec3":31,"../shapes/Box":38,"../shapes/Shape":44,"../utils/EventTarget":50,"../world/World":57}],33:[function(_dereq_,module,exports){
@@ -14145,12 +14175,12 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
 
         this.accumulator += timeSinceLastCalled;
         var substeps = 0;
-        while (this.accumulator >= dt && substeps < maxSubSteps) {
+        do {
             // Do fixed steps to catch up
             this.internalStep(dt);
             this.accumulator -= dt;
             substeps++;
-        }
+        } while (this.accumulator >= dt && substeps < maxSubSteps)
 
         var t = (this.accumulator % dt) / dt;
         for (var j = 0; j !== this.bodies.length; j++) {
