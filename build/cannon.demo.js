@@ -748,7 +748,7 @@ CANNON.Demo = function(options){
 
         world.dispatchEvent(World_step_preStepEvent);
         // Invoke pre-step callbacks
-        for(i=0; i!==N; i++){
+        for(i=0; i!==world.bodies.length; i++){
             var bi = world.bodies[i];
             if(bi.preStep){
                 bi.preStep.call(bi);
@@ -757,7 +757,7 @@ CANNON.Demo = function(options){
         world.step(timeStep, timeSinceLastCall, settings.maxSubSteps);
         world.dispatchEvent(World_step_postStepEvent);
         // Invoke post-step callbacks
-        for(i=0; i!==N; i++){
+        for(i=0; i!==world.bodies.length; i++){
             var bi = world.bodies[i];
             var postStep = bi.postStep;
             if(postStep){

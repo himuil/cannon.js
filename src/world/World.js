@@ -525,12 +525,12 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
 
         this.accumulator += timeSinceLastCalled;
         var substeps = 0;
-        do {
+        while (this.accumulator >= dt && substeps < maxSubSteps) {
             // Do fixed steps to catch up
             this.internalStep(dt);
             this.accumulator -= dt;
             substeps++;
-        } while (this.accumulator >= dt && substeps < maxSubSteps)
+        }
 
         var t = (this.accumulator % dt) / dt;
         for (var j = 0; j !== this.bodies.length; j++) {
@@ -939,15 +939,15 @@ World.prototype.emitCollisionEvents = function () {
 
         World_step_collideEvent.contacts = data;
 
-        World_step_collideEvent.body = bj;
+        World_step_collideEvent.body = sj.body;
         World_step_collideEvent.selfShape = si;
         World_step_collideEvent.otherShape = sj;
-        bj.dispatchEvent(World_step_collideEvent);
+        si.body.dispatchEvent(World_step_collideEvent);
 
-        World_step_collideEvent.body = bj;
+        World_step_collideEvent.body = si.body;
         World_step_collideEvent.selfShape = sj;
         World_step_collideEvent.otherShape = si;
-        bj.dispatchEvent(World_step_collideEvent);
+        sj.body.dispatchEvent(World_step_collideEvent);
     }
     var oldcontacts = World_step_oldContacts;
     for (i = oldcontacts.length; i--;) {
@@ -983,17 +983,17 @@ World.prototype.emitCollisionEvents = function () {
             
                     // collision exit
                     World_step_collideEvent.event = 'onCollisionExit';
-                    World_step_collideEvent.body = bj;
+                    World_step_collideEvent.body = sj.body;
                     World_step_collideEvent.selfShape = si;
                     World_step_collideEvent.otherShape = sj;
                     World_step_collideEvent.contacts.length = 0;
                     World_step_collideEvent.contacts.push(data);
-                    bi.dispatchEvent(World_step_collideEvent);
+                    si.body.dispatchEvent(World_step_collideEvent);
 
-                    World_step_collideEvent.body = bi;
+                    World_step_collideEvent.body = si.body;
                     World_step_collideEvent.selfShape = sj;
                     World_step_collideEvent.otherShape = si;
-                    bj.dispatchEvent(World_step_collideEvent);
+                    sj.body.dispatchEvent(World_step_collideEvent);
                 } else {
                     // not exit, due to sleeping
                 }
