@@ -104,6 +104,8 @@ function World (options) {
      */
     this.stepnumber = 0;
 
+    this.substeps = 0;
+
     /// Default and last timestep sizes
     this.default_dt = 1 / 60;
 
@@ -513,23 +515,28 @@ if (DEBUG) {
 World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
     maxSubSteps = maxSubSteps || 10;
     timeSinceLastCalled = timeSinceLastCalled || 0;
-    World_step_oldContacts = this.contacts.slice();
+    
+    if (this.substeps != 0) {
+        World_step_oldContacts = this.contacts.slice();
+    }
+
     if (timeSinceLastCalled === 0) { // Fixed, simple stepping
 
         this.internalStep(dt);
 
         // Increment time
         this.time += dt;
+        this.substeps = 1;
 
     } else {
 
         this.accumulator += timeSinceLastCalled;
-        var substeps = 0;
-        while (this.accumulator >= dt && substeps < maxSubSteps) {
+        this.substeps = 0;
+        while (this.accumulator >= dt && this.substeps < maxSubSteps) {
             // Do fixed steps to catch up
             this.internalStep(dt);
             this.accumulator -= dt;
-            substeps++;
+            this.substeps++;
         }
 
         var t = (this.accumulator % dt) / dt;
@@ -542,29 +549,6 @@ World.prototype.step = function (dt, timeSinceLastCalled, maxSubSteps) {
         this.time += timeSinceLastCalled;
     }
 
-
-    var contacts = this.contacts;
-    var i = this.contacts.length;
-    while (i--) {
-        // Current contact
-        var c = contacts[i];
-        // Get current collision indeces
-        var si = c.si;
-        var sj = c.sj;
-        var item = this.contactsDic.get(si.id, sj.id);
-        if (item == null) {
-            item = this.contactsDic.set(si.id, sj.id, []);
-        }
-        item.push(c);
-    }
-
-    if (DEBUG) {
-        // trigger 
-        this.emitTriggeredEvents();
-
-        // collision
-        this.emitCollisionEvents();
-    }
 };
 
 /**
@@ -819,6 +803,8 @@ var triggeredEvent = {
     otherShape: null
 };
 World.prototype.emitTriggeredEvents = function () {
+    if (this.substeps == 0)
+        return;
 
     var id1;
     var id2;
@@ -877,6 +863,24 @@ World.prototype.emitTriggeredEvents = function () {
 };
 
 World.prototype.emitCollisionEvents = function () {
+    if (this.substeps == 0)
+        return;
+
+    var contacts = this.contacts;
+    var i = this.contacts.length;
+    while (i--) {
+        // Current contact
+        var c = contacts[i];
+        // Get current collision indeces
+        var si = c.si;
+        var sj = c.sj;
+        var item = this.contactsDic.get(si.id, sj.id);
+        if (item == null) {
+            item = this.contactsDic.set(si.id, sj.id, []);
+        }
+        item.push(c);
+    }
+
     var key;
     var data;
     // is collision enter or stay

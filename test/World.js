@@ -315,6 +315,8 @@ module.exports = {
 
                 for (var step_idx = 0; step_idx < 2; step_idx++) {
                     world.step(0.1);
+                    world.emitTriggeredEvents();
+                    world.emitCollisionEvents();
                     var is_first_step = (step_idx === 0);
 
                     for (var coll_i = 0; coll_i < world.bodies.length; coll_i++) {

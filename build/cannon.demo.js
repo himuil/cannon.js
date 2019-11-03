@@ -764,6 +764,13 @@ CANNON.Demo = function(options){
                 postStep.call(bi);
             }
         }
+        
+        // trigger 
+        world.emitTriggeredEvents();
+
+        // collision
+        world.emitCollisionEvents();
+
         lastCallTime = now;
     }
 
