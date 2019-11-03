@@ -528,6 +528,7 @@ declare namespace CANNON {
         public angularFactor: Vec3;
         public linearFactor: Vec3;
         public useGravity: boolean;
+        public hasTrigger: boolean;
 
         constructor (options?: IBodyOptions);
 
@@ -552,7 +553,8 @@ declare namespace CANNON {
         public applyLocalImpulse (impulse: Vec3, localPoint: Vec3): void;
         public updateMassProperties (): void;
         public getVelocityAtWorldPoint (worldPoint: Vec3, result: Vec3): Vec3;
-
+        
+        public updateHasTrigger (): void;
     }
 
     interface IRaycastVehicleOptions {
