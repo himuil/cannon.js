@@ -289,9 +289,9 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                     }
 
                     if(retval && justTest){
-                        // Register overlap
-                        world.shapeOverlapKeeper.set(si.id, sj.id);
-                        world.shapeOverlapKeeperExit.set(si.id, sj.id);
+                        var data = {si:si, sj:sj};
+                        world.triggerDic.set(si.id, sj.id, data);
+                        world.oldTriggerDic.set(si.id, sj.id, data);
                     }
                 }
             }

@@ -54,15 +54,32 @@ TupleDictionary.prototype.set = function(i, j, value) {
 };
 
 /**
+ * @method del
+ * @param  {Number} i
+ * @param  {Number} j
+ * @returns {Boolean} is remove
+ */
+TupleDictionary.prototype.del = function(i, j) {
+    if (i > j) {
+        var temp = j;
+        j = i;
+        i = temp;
+    }
+    var key = i+'-'+j;
+    var index = this.data.keys.indexOf(key);
+    if (index >= 0) {
+        this.data.keys.splice(index, 1);
+        return true;
+    }
+    delete this.data[key];
+    return false;
+};
+
+/**
  * @method reset
  */
 TupleDictionary.prototype.reset = function() {
-    var data = this.data,
-        keys = data.keys;
-    while(keys.length > 0){
-        var key = keys.pop();
-        delete data[key];        
-    }
+    this.data = { keys:[] };
 };
 
 /**
