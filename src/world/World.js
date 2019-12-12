@@ -838,13 +838,11 @@ World.prototype.emitTriggeredEvents = function () {
     while (i > 0) {
         i--;
         key = this.oldTriggerDic.getKeyByIndex(i);
-        data = this.oldTriggerDic.getDataByKey(key);
-        
+
+        if (this.triggerDic.getDataByKey(key) != null) continue;
+
+        data = this.oldTriggerDic.getDataByKey(key);        
         if (data == null) continue;
-        
-        data = this.triggerDic.getDataByKey(key);
-        
-        if (data != null) continue;
 
         var shapeA = data.si;
         var shapeB = data.sj;

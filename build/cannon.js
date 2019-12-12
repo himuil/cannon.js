@@ -1,4 +1,4 @@
-// Thu, 12 Dec 2019 07:19:42 GMT
+// Thu, 12 Dec 2019 07:50:07 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -14508,13 +14508,11 @@ World.prototype.emitTriggeredEvents = function () {
     while (i > 0) {
         i--;
         key = this.oldTriggerDic.getKeyByIndex(i);
-        data = this.oldTriggerDic.getDataByKey(key);
-        
+
+        if (this.triggerDic.getDataByKey(key) != null) continue;
+
+        data = this.oldTriggerDic.getDataByKey(key);        
         if (data == null) continue;
-        
-        data = this.triggerDic.getDataByKey(key);
-        
-        if (data != null) continue;
 
         var shapeA = data.si;
         var shapeB = data.sj;
