@@ -1,4 +1,4 @@
-// Mon, 04 Nov 2019 05:14:37 GMT
+// Thu, 12 Dec 2019 07:19:42 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -11693,15 +11693,32 @@ TupleDictionary.prototype.set = function(i, j, value) {
 };
 
 /**
+ * @method del
+ * @param  {Number} i
+ * @param  {Number} j
+ * @returns {Boolean} is remove
+ */
+TupleDictionary.prototype.del = function(i, j) {
+    if (i > j) {
+        var temp = j;
+        j = i;
+        i = temp;
+    }
+    var key = i+'-'+j;
+    var index = this.data.keys.indexOf(key);
+    if (index >= 0) {
+        this.data.keys.splice(index, 1);
+        return true;
+    }
+    delete this.data[key];
+    return false;
+};
+
+/**
  * @method reset
  */
 TupleDictionary.prototype.reset = function() {
-    var data = this.data,
-        keys = data.keys;
-    while(keys.length > 0){
-        var key = keys.pop();
-        delete data[key];        
-    }
+    this.data = { keys:[] };
 };
 
 /**
@@ -12069,9 +12086,9 @@ Narrowphase.prototype.getContacts = function(p1, p2, world, result, oldcontacts,
                     }
 
                     if(retval && justTest){
-                        // Register overlap
-                        world.shapeOverlapKeeper.set(si.id, sj.id);
-                        world.shapeOverlapKeeperExit.set(si.id, sj.id);
+                        var data = {si:si, sj:sj};
+                        world.triggerDic.set(si.id, sj.id, data);
+                        world.oldTriggerDic.set(si.id, sj.id, data);
                     }
                 }
             }
@@ -13722,6 +13739,9 @@ function World (options) {
     this.contacts = [];
     this.frictionEquations = [];
 
+    this.triggerDic = new TupleDictionary();
+    this.oldTriggerDic = new TupleDictionary();
+
     this.contactsDic = new TupleDictionary();
     this.oldContactsDic = new TupleDictionary();
 
@@ -13811,10 +13831,6 @@ function World (options) {
     this.collisionMatrix = new ObjectCollisionMatrix();
 
     this.triggerMatrix = new ObjectCollisionMatrix();
-
-    this.shapeOverlapKeeper = new OverlapKeeper();
-
-    this.shapeOverlapKeeperExit = new OverlapKeeper();
 
     /**
      * All added materials
@@ -14456,42 +14472,19 @@ var triggeredEvent = {
     otherShape: null
 };
 World.prototype.emitTriggeredEvents = function () {
-    if (this.substeps == 0)
-        return;
+    if (this.substeps == 0) return;
 
-    var id1;
-    var id2;
-
-    additions.length = removals.length = 0;
-    this.shapeOverlapKeeperExit.getDiff(additions, removals);
-
-    for (var i = 0, l = removals.length; i < l; i += 2) {
-        triggeredEvent.event = 'onTriggerExit';
-        var shapeA = this.getShapeById(removals[i]);
-        var shapeB = this.getShapeById(removals[i + 1]);
-        // if(!shapeA.body.isSleeping || !shapeB.body.isSleeping){
-        this.triggerMatrix.set(shapeA, shapeB, false);
-        triggeredEvent.selfShape = shapeA;
-        triggeredEvent.otherShape = shapeB;
-        triggeredEvent.selfBody = shapeA.body;
-        triggeredEvent.otherBody = shapeB.body;
-        shapeA.dispatchEvent(triggeredEvent);
-
-        triggeredEvent.selfShape = shapeB;
-        triggeredEvent.otherShape = shapeA;
-        triggeredEvent.selfBody = shapeB.body;
-        triggeredEvent.otherBody = shapeA.body;
-        shapeB.dispatchEvent(triggeredEvent);
-        // }
-    }
-
-    additions.length = removals.length = 0;
-    this.shapeOverlapKeeper.getDiff(additions, removals);
-    for (var i = 0, l = additions.length; i < l; i += 2) {
-        var id1 = additions[i];
-        var id2 = additions[i + 1];
-        var shapeA = this.getShapeById(id1);
-        var shapeB = this.getShapeById(id2);
+    var key;
+    var data;
+    var i = this.triggerDic.getLength();
+    while (i--) {
+        key = this.triggerDic.getKeyByIndex(i);
+        data = this.triggerDic.getDataByKey(key);
+        
+        if (data == null) continue;
+        
+        var shapeA = data.si;
+        var shapeB = data.sj;
         if (this.triggerMatrix.get(shapeA, shapeB)) {
             triggeredEvent.event = 'onTriggerStay';
         } else {
@@ -14511,8 +14504,39 @@ World.prototype.emitTriggeredEvents = function () {
         shapeB.dispatchEvent(triggeredEvent);
     }
 
-    this.shapeOverlapKeeper.reset();
-    this.shapeOverlapKeeperExit.tick();
+    i = this.oldTriggerDic.getLength();
+    while (i > 0) {
+        i--;
+        key = this.oldTriggerDic.getKeyByIndex(i);
+        data = this.oldTriggerDic.getDataByKey(key);
+        
+        if (data == null) continue;
+        
+        data = this.triggerDic.getDataByKey(key);
+        
+        if (data != null) continue;
+
+        var shapeA = data.si;
+        var shapeB = data.sj;
+                
+        this.triggerMatrix.set(shapeA, shapeB, false);
+        if (this.oldTriggerDic.del(shapeA.id, shapeB.id)) i--;
+
+        triggeredEvent.event = 'onTriggerExit';
+        triggeredEvent.selfShape = shapeA;
+        triggeredEvent.otherShape = shapeB;
+        triggeredEvent.selfBody = shapeA.body;
+        triggeredEvent.otherBody = shapeB.body;
+        shapeA.dispatchEvent(triggeredEvent);
+
+        triggeredEvent.selfShape = shapeB;
+        triggeredEvent.otherShape = shapeA;
+        triggeredEvent.selfBody = shapeB.body;
+        triggeredEvent.otherBody = shapeA.body;
+        shapeB.dispatchEvent(triggeredEvent);
+    }
+
+    this.triggerDic.reset();
 };
 
 World.prototype.emitCollisionEvents = function () {
