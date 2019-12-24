@@ -716,6 +716,8 @@ Narrowphase.prototype.spherePlane = function(si,sj,xi,xj,qi,qj,bi,bj,rsi,rsj,jus
         this.result.push(r);
         this.createFrictionEquationsFromContact(r, this.frictionResult);
     }
+
+    return false;
 };
 
 // See http://bulletphysics.com/Bullet/BulletFull/SphereTriangleDetector_8cpp_source.html
