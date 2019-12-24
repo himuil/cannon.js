@@ -1,4 +1,4 @@
-// Thu, 12 Dec 2019 09:13:58 GMT
+// Tue, 24 Dec 2019 06:18:23 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -26,7 +26,7 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CANNON=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports={
   "name": "@cocos/cannon",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A lightweight 3D physics engine written in JavaScript.",
   "homepage": "https://github.com/cocos-creator/cannon.js",
   "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se), JayceLai",
@@ -9266,67 +9266,43 @@ var ConvexPolyhedron = _dereq_('./ConvexPolyhedron');
  */
 function Cylinder( radiusTop, radiusBottom, height , numSegments ) {
     var N = numSegments,
-        verts = [],
-        axes = [],
-        faces = [],
-        bottomface = [],
-        topface = [],
         cos = Math.cos,
         sin = Math.sin;
 
-    // First bottom point
-    verts.push(new Vec3(radiusBottom*cos(0),
-                               radiusBottom*sin(0),
-                               -height*0.5));
-    bottomface.push(0);
+    var halfH = height/2;
+    var vertices = [];
+    var indices = [];
+    var tf = [0];
+    var bf = [1];
+    var axes = [];
+    var theta = Math.PI * 2 / N;
+    for(var i = 0; i < N; i++){
+        vertices.push(new Vec3(radiusTop * Math.cos(theta*i), halfH, radiusTop * Math.sin(theta*i)));
+        vertices.push(new Vec3(radiusTop * Math.cos(theta*i), -halfH, radiusTop * Math.sin(theta*i)));
 
-    // First top point
-    verts.push(new Vec3(radiusTop*cos(0),
-                               radiusTop*sin(0),
-                               height*0.5));
-    topface.push(1);
-
-    for(var i=0; i<N; i++){
-        var theta = 2*Math.PI/N * (i+1);
-        var thetaN = 2*Math.PI/N * (i+0.5);
-        if(i<N-1){
-            // Bottom
-            verts.push(new Vec3(radiusBottom*cos(theta),
-                                       radiusBottom*sin(theta),
-                                       -height*0.5));
-            bottomface.push(2*i+2);
-            // Top
-            verts.push(new Vec3(radiusTop*cos(theta),
-                                       radiusTop*sin(theta),
-                                       height*0.5));
-            topface.push(2*i+3);
-
-            // Face
-            faces.push([2*i+2, 2*i+3, 2*i+1,2*i]);
-        } else {
-            faces.push([0,1, 2*i+1, 2*i]); // Connect
+        if(i < N-1){
+            indices.push([2*i+2, 2*i+3, 2*i+1,2*i]);
+            tf.push(2*i+2);
+            bf.push(2*i+3);
+        }else{
+            indices.push([0,1, 2*i+1, 2*i]);
         }
 
-        // Axis: we can cut off half of them if we have even number of segments
         if(N % 2 === 1 || i < N / 2){
-            axes.push(new Vec3(cos(thetaN), sin(thetaN), 0));
+            axes.push(new Vec3(cos(theta*(i+0.5)), 0, sin(theta*(i+0.5))));
         }
     }
-    faces.push(topface);
-    axes.push(new Vec3(0,0,1));
-
-    // Reorder bottom face
+    indices.push(bf);
     var temp = [];
-    for(var i=0; i<bottomface.length; i++){
-        temp.push(bottomface[bottomface.length - i - 1]);
+    for(var i=0; i<tf.length; i++){
+        temp.push(tf[tf.length - i - 1]);
     }
-    faces.push(temp);
-
-    ConvexPolyhedron.call( this, verts, faces, axes );
+    indices.push(temp);
+    axes.push(new Vec3(0,1,0));
+    ConvexPolyhedron.call( this, vertices, indices, axes);
 }
 
 Cylinder.prototype = new ConvexPolyhedron();
-
 },{"../math/Quaternion":29,"../math/Vec3":31,"./ConvexPolyhedron":39,"./Shape":44}],41:[function(_dereq_,module,exports){
 var Shape = _dereq_('./Shape');
 var ConvexPolyhedron = _dereq_('./ConvexPolyhedron');
@@ -11708,9 +11684,9 @@ TupleDictionary.prototype.del = function(i, j) {
     var index = this.data.keys.indexOf(key);
     if (index >= 0) {
         this.data.keys.splice(index, 1);
+        delete this.data[key];
         return true;
     }
-    delete this.data[key];
     return false;
 };
 
@@ -12513,6 +12489,8 @@ Narrowphase.prototype.spherePlane = function(si,sj,xi,xj,qi,qj,bi,bj,rsi,rsj,jus
         this.result.push(r);
         this.createFrictionEquationsFromContact(r, this.frictionResult);
     }
+
+    return false;
 };
 
 // See http://bulletphysics.com/Bullet/BulletFull/SphereTriangleDetector_8cpp_source.html
