@@ -182,7 +182,52 @@
       });
     });
 
-    demo.start(1);
+    demo.addScene("moving trigger", function () {
+      // Create world
+      var world = demo.getWorld();
+
+      world.defaultContactMaterial.contactEquationStiffness = 5e7;
+      world.defaultContactMaterial.contactEquationRelaxation = 4;
+      world.allowSleep = true;
+      world.gravity.set(0, 0, -20);
+
+      // ground plane
+      var groundShape = new CANNON.Box(new CANNON.Vec3(100, 100, 0.01));
+      var groundBody = new CANNON.Body({
+        mass: 0
+      });
+      groundBody.position.set(1, 1, 1);
+      groundBody.addShape(groundShape);
+      world.addBody(groundBody);
+      demo.addVisual(groundBody);
+
+      // Sphere
+      var sphere = new CANNON.Sphere(size / 2);
+      sphere.collisionResponse = false;
+      var sphereBody = new CANNON.Body({
+        mass: 0
+      });
+      sphereBody.addShape(sphere, new CANNON.Vec3(0, 0, 0));
+
+      var pos = new CANNON.Vec3(0, 0, size);
+      sphereBody.position.set(0, 0, size * 3);
+
+      world.addBody(sphereBody);
+      demo.addVisual(sphereBody);
+
+      sphere.addEventListener("triggered", function (e) {
+        console.log(`${e.event}`, e);
+      });
+
+      function update(t) {
+        sphereBody.position.set(0, 0, size * 5 * Math.sin(t / 500));
+        requestAnimationFrame(update);
+      }
+      update();
+    });
+
+
+    demo.start(3);
   </script>
 </body>
 
