@@ -69,9 +69,9 @@ TupleDictionary.prototype.del = function(i, j) {
     var index = this.data.keys.indexOf(key);
     if (index >= 0) {
         this.data.keys.splice(index, 1);
+        delete this.data[key];
         return true;
     }
-    delete this.data[key];
     return false;
 };
 
