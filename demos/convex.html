@@ -118,12 +118,12 @@
           //   demo.addVisual(capsuleBody);
           // }
           
-          for (var i0 = 0; i0 < 10; i0++) {
+          for (var i0 = 0; i0 < 2; i0++) {
             // compund capsule shape
             var topSphere = new CANNON.Sphere(0.5);
-            var topOffset = new CANNON.Vec3(0,0,1);
+            var topOffset = new CANNON.Vec3(0,1,0);
             var bottomSphere = new CANNON.Sphere(0.5);
-            var bottomOffset = new CANNON.Vec3(0,0,-1);
+            var bottomOffset = new CANNON.Vec3(0,-1,0);
             var num = 20;
             var verts = [];
             var normals = [];
@@ -136,8 +136,8 @@
             capsuleBody.addShape(topSphere, topOffset);
             capsuleBody.addShape(bottomSphere, bottomOffset);
             capsuleBody.addShape(cylinderShape);
-            capsuleBody.position.set(0,0,size*8+i0*3);
-            capsuleBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,1),Math.PI/3);
+            capsuleBody.position.set(0,0,size*3+i0*3);
+            capsuleBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),Math.PI/3);
             world.addBody(capsuleBody);
             demo.addVisual(capsuleBody);
           }       
@@ -181,6 +181,50 @@
           }
         });
 
+      // single capsule
+      demo.addScene("single capsule",function(){
+        var world = demo.getWorld();
+        world.gravity.set(0,0,-30);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 10;
+
+        world.defaultContactMaterial.contactEquationStiffness = 5e6;
+        world.defaultContactMaterial.contactEquationRelaxation = 3;
+
+        // ground plane
+        var groundShape = new CANNON.Box(new CANNON.Vec3(100, 100, 0.0001));
+        var groundBody = new CANNON.Body({ mass: 0 });
+        groundBody.addShape(groundShape);
+        groundBody.position.set(0,0,0);
+
+        world.addBody(groundBody);
+        demo.addVisual(groundBody);
+        
+        // compund capsule shape
+        var topSphere = new CANNON.Sphere(0.5);
+        var topOffset = new CANNON.Vec3(0,1,0);
+        var bottomSphere = new CANNON.Sphere(0.5);
+        var bottomOffset = new CANNON.Vec3(0,-1,0);
+        var num = 8;
+        var verts = [];
+        var normals = [];
+        var faces = [];
+        var bottomface = [];
+        var topface = [];
+        var L = 2, R = 0.5;
+        var cylinderShape = new CANNON.Cylinder(R,R,L,num);
+        var capsuleBody = new CANNON.Body({ mass: 10 });
+        capsuleBody.addShape(topSphere, topOffset);
+        capsuleBody.addShape(bottomSphere, bottomOffset);
+        capsuleBody.addShape(cylinderShape);
+        capsuleBody.position.set(0,0,3);
+        capsuleBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),Math.PI/2 + 15);
+        world.addBody(capsuleBody);
+        demo.addVisual(capsuleBody);
+
+      });
+
+
       function setupWorld(demo){
         var world = demo.getWorld();
         world.gravity.set(0,0,-30);
@@ -207,7 +251,7 @@
         return world;
       };
 
-      demo.start();
+      demo.start(3);
 
 
 /**
