@@ -553,7 +553,7 @@ declare namespace CANNON {
         public applyLocalImpulse (impulse: Vec3, localPoint: Vec3): void;
         public updateMassProperties (): void;
         public getVelocityAtWorldPoint (worldPoint: Vec3, result: Vec3): Vec3;
-        
+
         public updateHasTrigger (): void;
     }
 
@@ -781,14 +781,17 @@ declare namespace CANNON {
         public vertices: Vec3[];
         public worldVertices: Vec3[];
         public worldVerticesNeedsUpdate: boolean;
+        public worldFaceNormalsNeedsUpdate: boolean;
         public faces: number[][];
         public faceNormals: Vec3[];
         public uniqueEdges: Vec3[];
+        public uniqueAxes: Vec3[];
 
         constructor (points?: Vec3[], faces?: number[]);
 
         public computeEdges (): void;
         public computeNormals (): void;
+        public computeWorldFaceNormals (quat: Quaternion): void;
         public getFaceNormal (i: number, target: Vec3): Vec3;
         public clipAgainstHull (posA: Vec3, quatA: Quaternion, hullB: Vec3, quatB: Quaternion, separatingNormal: Vec3, minDist: number, maxDist: number, result: any[]): void;
         public findSaparatingAxis (hullB: ConvexPolyhedron, posA: Vec3, quatA: Quaternion, posB: Vec3, quatB: Quaternion, target: Vec3, faceListA: any[], faceListB: any[]): boolean;
@@ -806,7 +809,7 @@ declare namespace CANNON {
 
     }
 
-    class Cylinder extends Shape {
+    class Cylinder extends ConvexPolyhedron {
 
         constructor (radiusTop: number, radiusBottom: number, height: number, numSegments: number);
 
