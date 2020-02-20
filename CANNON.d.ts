@@ -28,6 +28,93 @@ declare namespace CANNON {
 
     }
 
+    /**
+     * @class OctreeNode
+     * @param {object} [options]
+     * @param {Octree} [options.root]
+     * @param {AABB} [options.aabb]
+     */
+    class OctreeNode {
+        /**
+         * The root node
+         * @property {OctreeNode} root
+         */
+        root: OctreeNode | null;
+
+        /**
+         * Boundary of this node
+         * @property {AABB} aabb
+         */
+        aabb: AABB;
+
+        /**
+         * Contained data at the current node level.
+         * @property {Array} data
+         */
+        data: number[];
+
+        /**
+         * Children to this node
+         * @property {Array} children
+         */
+        children: OctreeNode[];
+
+        /**
+         * Insert data into this node
+         * @method insert
+         * @param  {AABB} aabb
+         * @param  {object} elementData
+         * @return {boolean} True if successful, otherwise false
+         */
+        insert (aabb: AABB, elementData: any, level?: number | 0): boolean
+
+        reset (): void;
+
+        /**
+         * Create 8 equally sized children nodes and put them in the .children array.
+         * @method subdivide
+         */
+        subdivide (): void;
+
+        /**
+         * Get all data, potentially within an AABB
+         * @method aabbQuery
+         * @param  {AABB} aabb
+         * @param  {array} result
+         * @return {array} The "result" object
+         */
+        aabbQuery (aabb: AABB, resul: any[]): any[]
+
+        /**
+         * Get all data, potentially intersected by a ray.
+         * @method rayQuery
+         * @param  {Ray} ray
+         * @param  {Transform} treeTransform
+         * @param  {array} result
+         * @return {array} The "result" object
+         */
+        rayQuery (ray: Ray, treeTransform: Transform, result: any[]): any[];
+
+        /**
+         * @method removeEmptyNodes
+         */
+        removeEmptyNodes (): void;
+
+    }
+
+    /**
+     * @class Octree
+     * @param {AABB} aabb The total AABB of the tree
+     * @param {object} [options]
+     * @param {number} [options.maxDepth=8]
+     * @extends OctreeNode
+     */
+    class Octree extends OctreeNode {
+        maxDepth: number | 8;
+
+        constructor (aabb?: AABB, opt?: any);
+    }
+
     class ArrayCollisionMatrix {
 
         public matrix: Mat3[];
@@ -942,7 +1029,9 @@ declare namespace CANNON {
          * The indexed triangles. Use .updateTree() to update it.
          * @property {Octree} tree
          */
-        public tree: any;
+        public tree: Octree;
+
+        constructor (vertices: Float32Array, indices: Uint16Array);
 
         public updateTree (): void;
 

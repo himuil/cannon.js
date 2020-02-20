@@ -1,4 +1,4 @@
-// Tue, 24 Dec 2019 06:18:23 GMT
+// Thu, 20 Feb 2020 06:58:08 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -127,9 +127,10 @@ module.exports = {
     Vec3 :                          _dereq_('./math/Vec3'),
     Vec3Pool :                      _dereq_('./utils/Vec3Pool'),
     World :                         _dereq_('./world/World'),
+    Octree :                        _dereq_('./utils/Octree'),
 };
 
-},{"../package.json":1,"./collision/AABB":3,"./collision/ArrayCollisionMatrix":4,"./collision/Broadphase":5,"./collision/GridBroadphase":6,"./collision/NaiveBroadphase":7,"./collision/ObjectCollisionMatrix":8,"./collision/Ray":10,"./collision/RaycastResult":11,"./collision/SAPBroadphase":12,"./constraints/ConeTwistConstraint":13,"./constraints/Constraint":14,"./constraints/DistanceConstraint":15,"./constraints/HingeConstraint":16,"./constraints/LockConstraint":17,"./constraints/PointToPointConstraint":18,"./equations/ContactEquation":20,"./equations/Equation":21,"./equations/FrictionEquation":22,"./equations/RotationalEquation":23,"./equations/RotationalMotorEquation":24,"./material/ContactMaterial":25,"./material/Material":26,"./math/Mat3":28,"./math/Quaternion":29,"./math/Transform":30,"./math/Vec3":31,"./objects/Body":32,"./objects/RaycastVehicle":33,"./objects/RigidVehicle":34,"./objects/SPHSystem":35,"./objects/Spring":36,"./shapes/Box":38,"./shapes/ConvexPolyhedron":39,"./shapes/Cylinder":40,"./shapes/Heightfield":41,"./shapes/Particle":42,"./shapes/Plane":43,"./shapes/Shape":44,"./shapes/Sphere":45,"./shapes/Trimesh":46,"./solver/GSSolver":47,"./solver/Solver":48,"./solver/SplitSolver":49,"./utils/EventTarget":50,"./utils/Pool":52,"./utils/Vec3Pool":55,"./world/Narrowphase":56,"./world/World":57}],3:[function(_dereq_,module,exports){
+},{"../package.json":1,"./collision/AABB":3,"./collision/ArrayCollisionMatrix":4,"./collision/Broadphase":5,"./collision/GridBroadphase":6,"./collision/NaiveBroadphase":7,"./collision/ObjectCollisionMatrix":8,"./collision/Ray":10,"./collision/RaycastResult":11,"./collision/SAPBroadphase":12,"./constraints/ConeTwistConstraint":13,"./constraints/Constraint":14,"./constraints/DistanceConstraint":15,"./constraints/HingeConstraint":16,"./constraints/LockConstraint":17,"./constraints/PointToPointConstraint":18,"./equations/ContactEquation":20,"./equations/Equation":21,"./equations/FrictionEquation":22,"./equations/RotationalEquation":23,"./equations/RotationalMotorEquation":24,"./material/ContactMaterial":25,"./material/Material":26,"./math/Mat3":28,"./math/Quaternion":29,"./math/Transform":30,"./math/Vec3":31,"./objects/Body":32,"./objects/RaycastVehicle":33,"./objects/RigidVehicle":34,"./objects/SPHSystem":35,"./objects/Spring":36,"./shapes/Box":38,"./shapes/ConvexPolyhedron":39,"./shapes/Cylinder":40,"./shapes/Heightfield":41,"./shapes/Particle":42,"./shapes/Plane":43,"./shapes/Shape":44,"./shapes/Sphere":45,"./shapes/Trimesh":46,"./solver/GSSolver":47,"./solver/Solver":48,"./solver/SplitSolver":49,"./utils/EventTarget":50,"./utils/Octree":51,"./utils/Pool":52,"./utils/Vec3Pool":55,"./world/Narrowphase":56,"./world/World":57}],3:[function(_dereq_,module,exports){
 var Vec3 = _dereq_('../math/Vec3');
 var Utils = _dereq_('../utils/Utils');
 
