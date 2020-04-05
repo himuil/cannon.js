@@ -50,4 +50,5 @@ module.exports = {
     Vec3 :                          require('./math/Vec3'),
     Vec3Pool :                      require('./utils/Vec3Pool'),
     World :                         require('./world/World'),
+    Octree :                        require('./utils/Octree'),
 };
