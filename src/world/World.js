@@ -704,27 +704,40 @@ World.prototype.internalStep = function(dt){
             si = c.si,
             sj = c.sj;
 
-        // Get collision properties
-        var cm;
-        if(bi.material && bj.material){
-            cm = this.getContactMaterial(bi.material,bj.material) || this.defaultContactMaterial;
-        } else {
-            cm = this.defaultContactMaterial;
-        }
+        // // Get collision properties
+        // var cm;
+        // if(bi.material && bj.material){
+        //     cm = this.getContactMaterial(bi.material,bj.material) || this.defaultContactMaterial;
+        // } else {
+        //     cm = this.defaultContactMaterial;
+        // }
 
-        // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
+        // // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
 
-        var mu = cm.friction;
-        // c.restitution = cm.restitution;
+        // var mu = cm.friction;
+        // // c.restitution = cm.restitution;
 
-        // If friction or restitution were specified in the material, use them
-        if(bi.material && bj.material){
-            if(bi.material.friction >= 0 && bj.material.friction >= 0){
-                mu = bi.material.friction * bj.material.friction;
+        // // If friction or restitution were specified in the material, use them
+        // if(bi.material && bj.material){
+        //     if(bi.material.friction >= 0 && bj.material.friction >= 0){
+        //         mu = bi.material.friction * bj.material.friction;
+        //     }
+
+        //     if(bi.material.restitution >= 0 && bj.material.restitution >= 0){
+        //         c.restitution = bi.material.restitution * bj.material.restitution;
+        //     }
+        // }
+
+        // EXTEND
+        if (si.material && sj.material) {            
+            if(si.material.restitution >= 0 && sj.material.restitution >= 0){
+                c.restitution = si.material.restitution * sj.material.restitution;
             }
-
-            if(bi.material.restitution >= 0 && bj.material.restitution >= 0){
-                c.restitution = bi.material.restitution * bj.material.restitution;
+        }else{
+            if(bi.material && bj.material){   
+                if(bi.material.restitution >= 0 && bj.material.restitution >= 0){
+                    c.restitution = bi.material.restitution * bj.material.restitution;
+                }
             }
         }
 
