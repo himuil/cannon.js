@@ -310,34 +310,35 @@
       demo.addScene("p2p",function(){
           var world = setupWorld(demo);
           var size = 1;
-          var sphereShape = new CANNON.Sphere(size);
+          var sphereShape1 = new CANNON.Sphere(size);
           var mass = 1;
 
-          var spherebody = new CANNON.Body({ mass: mass });
-          spherebody.addShape(sphereShape);
-          spherebody.position.set(0,0,size*3);
+          var spherebody = new CANNON.Body({ mass: mass });          
+          // var spherebody = new CANNON.Body({ mass: 0 });
+          spherebody.addShape(sphereShape1);
+          spherebody.position.set(0,0,size*5);
           spherebody.velocity.set(5,0,0);
           spherebody.linearDamping=0;
           spherebody.angularDamping=0;
           world.addBody(spherebody);
           demo.addVisual(spherebody);
 
-          var spherebody2 = new CANNON.Body({ mass: 0 });
-          spherebody2.addShape(sphereShape);
-          spherebody2.position.set(0,0,size*7);
-          world.addBody(spherebody2);
-          demo.addVisual(spherebody2);
+          var sizeS = 0.6 * size;
+          var sphereShape2 = new CANNON.Box(new CANNON.Vec3(sizeS,sizeS,sizeS));
+          // var sphereShape2 = new CANNON.Sphere(size);
+          // var body2 = new CANNON.Body({ mass: mass });
+          var body2 = new CANNON.Body({ mass: 0 });
+          body2.addShape(sphereShape2);
+          body2.position.set(0,0,size*8);
+          world.addBody(body2);
+          demo.addVisual(body2);
 
           // Connect this body to the last one
-          // var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,0),spherebody2,new CANNON.Vec3(0,0,-4));
-          var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,4),spherebody2,new CANNON.Vec3(0,0,0));
-          // var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,size*2),spherebody2,new CANNON.Vec3(0,0,-size*2));
+          var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,-3,0),body2,new CANNON.Vec3(0,0,size + sizeS),0.5);
+          // var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,0),body2,new CANNON.Vec3(0,0,-4));
+          // var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,4),body2,new CANNON.Vec3(0,0,0));
+          // var c = new CANNON.PointToPointConstraint(spherebody,new CANNON.Vec3(0,0,size*2),body2,new CANNON.Vec3(0,0,-size*2));
           world.addConstraint(c);
-
-          addFrameUpdate((time)=>{
-            spherebody.position.x = Math.sin(time / 1000);            
-            demo.addVisual(spherebody);
-          });
       });
 
       function setupWorld(demo){
@@ -370,7 +371,7 @@
           window.requestAnimationFrame(_func);
       }
 
-      demo.start();
+      demo.start(7);
 
     </script>
   </body>

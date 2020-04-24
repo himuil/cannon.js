@@ -875,7 +875,7 @@ declare namespace CANNON {
         public uniqueEdges: Vec3[];
         public uniqueAxes: Vec3[];
 
-        constructor (points?: Vec3[], faces?: number[]);
+        constructor (points?: Vec3[], faces?: number[][]);
 
         public computeEdges (): void;
         public computeNormals (): void;
