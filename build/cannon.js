@@ -1,4 +1,4 @@
-// Tue, 07 Apr 2020 10:57:00 GMT
+// Fri, 24 Apr 2020 09:15:52 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -26,7 +26,7 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CANNON=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports={
   "name": "@cocos/cannon",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "A lightweight 3D physics engine written in JavaScript.",
   "homepage": "https://github.com/cocos-creator/cannon.js",
   "author": "Stefan Hedman <schteppe@gmail.com> (http://steffe.se), JayceLai",
@@ -14821,10 +14821,10 @@ World.prototype.emitCollisionEvents = function () {
         if (data == null)
             continue;
 
-        var bi = data[0].bi;
-        var bj = data[0].bj;
         var si = data[0].si;
         var sj = data[0].sj;
+        var bi = si.body;
+        var bj = sj.body;
 
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.cm.get(bi, bj)) {
@@ -14871,10 +14871,10 @@ World.prototype.emitCollisionEvents = function () {
         key = this.oldContactsDic.getKeyByIndex(i);
         if (this.contactsDic.getDataByKey(key) == null) {
             data = this.oldContactsDic.getDataByKey(key);
-            var bi = data.bi;
-            var bj = data.bj;
             var si = data.si;
             var sj = data.sj;
+            var bi = si.body;
+            var bj = sj.body;
             if (this.cm.get(bi, bj)) {
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.cm.set(bi, bj, false);
