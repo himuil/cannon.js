@@ -1146,10 +1146,10 @@ World.prototype.emitCollisionEvents = function () {
         if (data == null)
             continue;
 
-        var bi = data[0].bi;
-        var bj = data[0].bj;
         var si = data[0].si;
         var sj = data[0].sj;
+        var bi = si.body;
+        var bj = sj.body;
 
         // Now we know that i and j are in contact. Set collision matrix state		
         if (this.cm.get(bi, bj)) {
@@ -1196,10 +1196,10 @@ World.prototype.emitCollisionEvents = function () {
         key = this.oldContactsDic.getKeyByIndex(i);
         if (this.contactsDic.getDataByKey(key) == null) {
             data = this.oldContactsDic.getDataByKey(key);
-            var bi = data.bi;
-            var bj = data.bj;
             var si = data.si;
             var sj = data.sj;
+            var bi = si.body;
+            var bj = sj.body;
             if (this.cm.get(bi, bj)) {
                 if (!bi.isSleeping() || !bj.isSleeping()) {
                     this.cm.set(bi, bj, false);
