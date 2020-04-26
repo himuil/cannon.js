@@ -1,4 +1,4 @@
-// Fri, 24 Apr 2020 09:15:52 GMT
+// Sun, 26 Apr 2020 10:59:58 GMT
 
 /*
  * Copyright (c) 2015 cannon.js Authors
@@ -14723,7 +14723,7 @@ World.prototype.clearForces = function(){
 };
 
 var cc_trigger = {type: 'cc-trigger',event: '',selfBody: null,otherBody: null,selfShape: null,otherShape: null};
-var cc_collide = {type: "cc-collide",event: '',body: null,selfShape: null,otherShape: null,contacts: null};
+var cc_collide = {type: "cc-collide",event: '',body: null,selfShape: null,otherShape: null,contacts: null,isA: false};
 var cc_oldContacts = [];
 World.prototype.emitTriggeredEvents = function () {
     if (this.substeps == 0) return;
@@ -14821,6 +14821,7 @@ World.prototype.emitCollisionEvents = function () {
         if (data == null)
             continue;
 
+        var the_bi = data[0].bi;
         var si = data[0].si;
         var sj = data[0].sj;
         var bi = si.body;
@@ -14843,13 +14844,15 @@ World.prototype.emitCollisionEvents = function () {
         cc_collide.contacts = data;
 
         cc_collide.body = bj;
-        cc_collide.selfShape = si;
         cc_collide.otherShape = sj;
+        cc_collide.selfShape = si;
+        cc_collide.isA = the_bi.id == bi.id;
         bi.dispatchEvent(cc_collide);
 
         cc_collide.body = bi;
         cc_collide.selfShape = sj;
         cc_collide.otherShape = si;
+        cc_collide.isA = !cc_collide.isA;
         bj.dispatchEvent(cc_collide);
     }
     var oldcontacts = cc_oldContacts;
@@ -14871,6 +14874,7 @@ World.prototype.emitCollisionEvents = function () {
         key = this.oldContactsDic.getKeyByIndex(i);
         if (this.contactsDic.getDataByKey(key) == null) {
             data = this.oldContactsDic.getDataByKey(key);
+            var the_bi = data.bi;
             var si = data.si;
             var sj = data.sj;
             var bi = si.body;
@@ -14886,7 +14890,8 @@ World.prototype.emitCollisionEvents = function () {
                     cc_collide.event = 'onCollisionExit';
                     cc_collide.body = bj;
                     cc_collide.selfShape = si;
-                    cc_collide.otherShape = sj;
+                    cc_collide.otherShape = sj;                    
+                    cc_collide.isA = the_bi.id == bi.id;
                     cc_collide.contacts.length = 0;
                     cc_collide.contacts.push(data);
                     bi.dispatchEvent(cc_collide);
@@ -14894,6 +14899,7 @@ World.prototype.emitCollisionEvents = function () {
                     cc_collide.body = bi;
                     cc_collide.selfShape = sj;
                     cc_collide.otherShape = si;
+                    cc_collide.isA = !cc_collide.isA;
                     bj.dispatchEvent(cc_collide);
                 } else {
                     // not exit, due to sleeping
