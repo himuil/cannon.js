@@ -257,7 +257,7 @@ declare namespace CANNON {
 
     }
 
-    class HingeConstraint extends Constraint {
+    class HingeConstraint extends PointToPointConstraint {
 
         public motorEnabled: boolean;
         public motorTargetVelocity: number;
@@ -508,6 +508,7 @@ declare namespace CANNON {
         public normalize (): number;
         public unit (target?: Vec3): Vec3;
         public norm (): number;
+        public length (): number;
         public norm2 (): number;
         public distanceTo (p: Vec3): number;
         public mult (scalar: number, target?: Vec3): Vec3;
