@@ -82,11 +82,11 @@ Broadphase.prototype.needBroadphaseCollision = function(bodyA,bodyB){
  * @param {array} pairs1
  * @param {array} pairs2
   */
-Broadphase.prototype.intersectionTest = function(bodyA, bodyB, pairs1, pairs2){
+Broadphase.prototype.intersectionTest = function(bodyA, bodyB, pairs1, pairs2, constraints){
     if(this.useBoundingBoxes){
-        this.doBoundingBoxBroadphase(bodyA,bodyB,pairs1,pairs2);
+        this.doBoundingBoxBroadphase(bodyA,bodyB,pairs1,pairs2,constraints);
     } else {
-        this.doBoundingSphereBroadphase(bodyA,bodyB,pairs1,pairs2);
+        this.doBoundingSphereBroadphase(bodyA,bodyB,pairs1,pairs2,constraints);
     }
 };
 
@@ -102,12 +102,25 @@ var Broadphase_collisionPairs_r = new Vec3(), // Temp objects
     Broadphase_collisionPairs_normal =  new Vec3(),
     Broadphase_collisionPairs_quat =  new Quaternion(),
     Broadphase_collisionPairs_relpos  =  new Vec3();
-Broadphase.prototype.doBoundingSphereBroadphase = function(bodyA,bodyB,pairs1,pairs2){
+Broadphase.prototype.doBoundingSphereBroadphase = function(bodyA,bodyB,pairs1,pairs2,constraints){
     var r = Broadphase_collisionPairs_r;
     bodyB.position.vsub(bodyA.position,r);
     var boundingRadiusSum2 = Math.pow(bodyA.boundingRadius + bodyB.boundingRadius, 2);
     var norm2 = r.norm2();
     if(norm2 < boundingRadiusSum2){
+        if (constraints) {
+            // Do not add if constrained pairs with collideConnected == false
+            var Nconstraints = constraints.length;
+            for (i = 0; i !== Nconstraints; i++) {
+                var c = constraints[i];
+                if (!c.collideConnected) {
+                    if ((c.bodyA === bodyA && c.bodyB === bodyB) ||
+                        (c.bodyB === bodyA && c.bodyA === bodyB)) {
+                        return;
+                    }
+                }
+            }
+        }
         pairs1.push(bodyA);
         pairs2.push(bodyB);
     }
@@ -121,7 +134,7 @@ Broadphase.prototype.doBoundingSphereBroadphase = function(bodyA,bodyB,pairs1,pa
  * @param {Array} pairs1
  * @param {Array} pairs2
  */
-Broadphase.prototype.doBoundingBoxBroadphase = function(bodyA,bodyB,pairs1,pairs2){
+Broadphase.prototype.doBoundingBoxBroadphase = function(bodyA,bodyB,pairs1,pairs2,constraints){
     if(bodyA.aabbNeedsUpdate){
         bodyA.computeAABB();
     }
@@ -131,6 +144,19 @@ Broadphase.prototype.doBoundingBoxBroadphase = function(bodyA,bodyB,pairs1,pairs
 
     // Check AABB / AABB
     if(bodyA.aabb.overlaps(bodyB.aabb)){
+        if (constraints) {
+            // Do not add if constrained pairs with collideConnected == false
+            var Nconstraints = constraints.length;
+            for (i = 0; i !== Nconstraints; i++) {
+                var c = constraints[i];
+                if (!c.collideConnected) {
+                    if ((c.bodyA === bodyA && c.bodyB === bodyB) ||
+                        (c.bodyB === bodyA && c.bodyA === bodyB)) {
+                        return;
+                    }
+                }
+            }
+        }
         pairs1.push(bodyA);
         pairs2.push(bodyB);
     }

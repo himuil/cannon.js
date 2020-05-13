@@ -25,6 +25,7 @@ NaiveBroadphase.prototype.constructor = NaiveBroadphase;
  */
 NaiveBroadphase.prototype.collisionPairs = function(world,pairs1,pairs2){
     var bodies = world.bodies,
+        constraints = world.constraints,
         n = bodies.length,
         i,j,bi,bj;
 
@@ -39,7 +40,7 @@ NaiveBroadphase.prototype.collisionPairs = function(world,pairs1,pairs2){
                 continue;
             }
 
-            this.intersectionTest(bi,bj,pairs1,pairs2);
+            this.intersectionTest(bi,bj,pairs1,pairs2,constraints);
         }
     }
 };

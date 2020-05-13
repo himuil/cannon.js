@@ -637,21 +637,6 @@ World.prototype.internalStep = function (dt) {
     this.broadphase.collisionPairs(this, p1, p2);
     if (doProfiling) { profile.broadphase = performance.now() - profilingStart; }
 
-    // Remove constrained pairs with collideConnected == false
-    var Nconstraints = constraints.length;
-    for (i = 0; i !== Nconstraints; i++) {
-        var c = constraints[i];
-        if (!c.collideConnected) {
-            for (var j = p1.length - 1; j >= 0; j -= 1) {
-                if ((c.bodyA === p1[j] && c.bodyB === p2[j]) ||
-                    (c.bodyB === p1[j] && c.bodyA === p2[j])) {
-                    p1.splice(j, 1);
-                    p2.splice(j, 1);
-                }
-            }
-        }
-    }
-
     // Generate contacts
     if (doProfiling) { profilingStart = performance.now(); }
 
