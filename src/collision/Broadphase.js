@@ -111,7 +111,7 @@ Broadphase.prototype.doBoundingSphereBroadphase = function(bodyA,bodyB,pairs1,pa
         if (constraints) {
             // Do not add if constrained pairs with collideConnected == false
             var Nconstraints = constraints.length;
-            for (i = 0; i !== Nconstraints; i++) {
+            for (var i = 0; i !== Nconstraints; i++) {
                 var c = constraints[i];
                 if (!c.collideConnected) {
                     if ((c.bodyA === bodyA && c.bodyB === bodyB) ||
@@ -147,7 +147,7 @@ Broadphase.prototype.doBoundingBoxBroadphase = function(bodyA,bodyB,pairs1,pairs
         if (constraints) {
             // Do not add if constrained pairs with collideConnected == false
             var Nconstraints = constraints.length;
-            for (i = 0; i !== Nconstraints; i++) {
+            for (var i = 0; i !== Nconstraints; i++) {
                 var c = constraints[i];
                 if (!c.collideConnected) {
                     if ((c.bodyA === bodyA && c.bodyB === bodyB) ||
