@@ -36,6 +36,7 @@ module.exports = {
     RaycastVehicle :                require('./objects/RaycastVehicle'),
     RaycastResult :                 require('./collision/RaycastResult'),
     RigidVehicle :                  require('./objects/RigidVehicle'),
+    ConeEquation :                  require('./equations/ConeEquation'),
     RotationalEquation :            require('./equations/RotationalEquation'),
     RotationalMotorEquation :       require('./equations/RotationalMotorEquation'),
     SAPBroadphase :                 require('./collision/SAPBroadphase'),
