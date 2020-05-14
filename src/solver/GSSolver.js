@@ -39,7 +39,7 @@ var GSSolver_solve_Bs = [];
 GSSolver.prototype.solve = function(dt,world){
     var iter = 0,
         maxIter = this.iterations,
-        tolSquared = this.tolerance*this.tolerance,
+        // tolSquared = this.tolerance*this.tolerance,
         equations = this.equations,
         Neq = equations.length,
         bodies = world.bodies,
@@ -83,7 +83,7 @@ GSSolver.prototype.solve = function(dt,world){
         for(iter=0; iter!==maxIter; iter++){
 
             // Accumulate the total error for each iteration.
-            deltalambdaTot = 0.0;
+            // deltalambdaTot = 0.0;
 
             for(var j=0; j!==Neq; j++){
 
@@ -97,22 +97,23 @@ GSSolver.prototype.solve = function(dt,world){
                 deltalambda = invC * ( B - GWlambda - c.eps * lambdaj );
 
                 // Clamp if we are not within the min/max interval
-                if(lambdaj + deltalambda < c.minForce){
+                var lambdaFinal = lambdaj + deltalambda;
+                if(lambdaFinal < c.minForce){
                     deltalambda = c.minForce - lambdaj;
-                } else if(lambdaj + deltalambda > c.maxForce){
+                } else if(lambdaFinal > c.maxForce){
                     deltalambda = c.maxForce - lambdaj;
                 }
                 lambda[j] += deltalambda;
 
-                deltalambdaTot += deltalambda > 0.0 ? deltalambda : -deltalambda; // abs(deltalambda)
+                // deltalambdaTot += deltalambda > 0.0 ? deltalambda : -deltalambda; // abs(deltalambda)
 
                 c.addToWlambda(deltalambda);
             }
 
             // If the total error is small enough - stop iterate
-            if(deltalambdaTot*deltalambdaTot < tolSquared){
-                break;
-            }
+            // if(deltalambdaTot*deltalambdaTot < tolSquared){
+            //     break;
+            // }
         }
 
         // Add result to velocity
@@ -129,11 +130,11 @@ GSSolver.prototype.solve = function(dt,world){
         }
 
         // Set the .multiplier property of each equation
-        var l = equations.length;
-        var invDt = 1 / h;
-        while(l--){
-            equations[l].multiplier = lambda[l] * invDt;
-        }
+        // var l = equations.length;
+        // var invDt = 1 / h;
+        // while(l--){
+        //     equations[l].multiplier = lambda[l] * invDt;
+        // }
     }
 
     return iter;
