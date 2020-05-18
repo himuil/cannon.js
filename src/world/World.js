@@ -711,13 +711,17 @@ World.prototype.internalStep = function (dt) {
     for (i = 0; i !== N; i++) {
         var bi = bodies[i];
         if (bi.type & DYNAMIC) { // Only for dynamic bodies
-            var ld = pow(1.0 - bi.linearDamping, dt);
-            var v = bi.velocity;
-            v.mult(ld, v);
-            var av = bi.angularVelocity;
-            if (av) {
-                var ad = pow(1.0 - bi.angularDamping, dt);
-                av.mult(ad, av);
+            if (bi.linearDamping !== 0) {
+                var ld = pow(1.0 - bi.linearDamping, dt);
+                var v = bi.velocity;
+                v.mult(ld, v);
+            }
+            if (bi.angularDamping !== 0) {
+                var av = bi.angularVelocity;
+                if (av) {
+                    var ad = pow(1.0 - bi.angularDamping, dt);
+                    av.mult(ad, av);
+                }
             }
         }
     }
